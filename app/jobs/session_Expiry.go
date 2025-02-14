@@ -79,6 +79,5 @@ func JobSessionExpiry() {
 			logger.SecurityLogger.Printf("[%v]  OK (%v/%v) Session=[%v] Expires=[%v] User=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry, s.UserID)
 		}
 	}
-
 	j.Stop(count)
 }
