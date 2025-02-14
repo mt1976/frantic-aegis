@@ -1,6 +1,6 @@
 module github.com/mt1976/frantic-aegis
 
-go 1.23.6
+go 1.24
 
 require (
 	github.com/asdine/storm/v3 v3.2.1
@@ -18,6 +18,7 @@ require (
 	github.com/go-playground/validator/v10 v10.24.0 // indirect
 	github.com/gregdel/pushover v1.3.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/mt1976/trnsl8r_connect v1.2.2
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
 	go.etcd.io/bbolt v1.4.0 // indirect

@@ -44,7 +44,8 @@ func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.Us
 
 		if userName == "" || password == "" {
 			logger.SecurityLogger.Printf("[%v] Unauthorized Access Attempt - %v", strings.ToUpper(domain), http.StatusText(http.StatusUnauthorized))
-			Violation(w, r, "Username or Password not provided")
+			msg, _ := trnsl8.Get("Username and/or Password not provided")
+			Violation(w, r, msg.String())
 		}
 
 		// Check this is a valid user
@@ -52,14 +53,16 @@ func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.Us
 		user, err := userNameValidator(userName)
 		if err != nil {
 			logger.SecurityLogger.Printf("[%v] User not found - %v", strings.ToUpper(domain), userName)
-			Violation(w, r, "User not found")
+			msg, _ := trnsl8.Get("User not found")
+			Violation(w, r, msg.String())
 		}
 
 		//err = auth.ValidateUserIDAndPassword(user.ID, password)
 		err = authValidator(user.ID, password)
 		if err != nil {
 			logger.SecurityLogger.Printf("[%v] Password mismatch - %v", strings.ToUpper(domain), userName)
-			Violation(w, r, "Password mismatch")
+			msg, _ := trnsl8.Get("Password mismatch")
+			Violation(w, r, msg.String())
 		} else {
 			securityCheckOK = true
 		}
@@ -76,9 +79,13 @@ func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.Us
 		} else {
 			// Request Basic Authentication otherwise
 			msg := http.StatusText(http.StatusUnauthorized)
+
 			if err != nil {
 				msg = err.Error()
 			}
+
+			msgx, _ := trnsl8.Get(msg)
+			msg = msgx.String()
 			Violation(w, r, msg)
 		}
 	}
@@ -110,11 +117,14 @@ func Violation(w http.ResponseWriter, r *http.Request, msg string) {
 	//fmt.Printf("v: %v\n", v)
 	v.Add(msgTypeKey, "error")
 	//fmt.Printf("v: %v\n", v)
-	v.Add(msgTitleKey, "Unauthorized Access")
+	msg2, _ := trnsl8.Get("Unauthorized Access")
+	v.Add(msgTitleKey, msg2.String())
 	//fmt.Printf("v: %v\n", v)
-	v.Add(msgContentKey, fmt.Sprintf("Access is prohibited - %v", msg))
+	msg3, _ := trnsl8.Get("Access is prohibited - %v")
+	v.Add(msgContentKey, fmt.Sprintf(msg3.String(), msg))
 	//fmt.Printf("v: %v\n", v)
-	v.Add(msgActionKey, "Security")
+	msg4, _ := trnsl8.Get("Security")
+	v.Add(msgActionKey, msg4.String())
 	//fmt.Printf("v: %v\n", v)
 	uri.RawQuery = v.Encode()
 
@@ -154,7 +164,8 @@ func Validate(h httprouter.Handle) httprouter.Handle {
 		} else {
 			// Error Response
 			logger.SecurityLogger.Printf("[%v] Session Violation - [%v] - [%v]", strings.ToUpper(domain), r.RequestURI, http.StatusText(http.StatusUnauthorized))
-			msg := http.StatusText(http.StatusUnauthorized) + " - No Session Key Found"
+			msg2, _ := trnsl8.Get("Session Key not found")
+			msg := http.StatusText(http.StatusUnauthorized) + " - " + msg2.String()
 			Violation(w, r, msg)
 		}
 	}

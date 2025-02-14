@@ -36,10 +36,6 @@ func New(ctx context.Context, userID int, userIDValidator func(int) (securityMod
 	SI.Life = SS.Expiry.Sub(time.Now())
 	SI.UserCode = UserMessage.Code
 
-	// ctx = context.WithValue(ctx, sessionKey, SI.SessionID)
-	// ctx = context.WithValue(ctx, sessionUserIDKey, SI.UserID)
-	// ctx = context.WithValue(ctx, sessionTokenKey, SI.Token)
-	// ctx = context.WithValue(ctx, sessionUserCodeKey, SI.UserCode)
 	ctx = setSessionContextValues(ctx, UserMessage, SI.SessionID, SS)
 
 	if appModeDev {
@@ -63,7 +59,8 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 	token, err := sessionStore.GetById(sessionID)
 	if err != nil {
 		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
-		Violation(w, r, "Session Not Found")
+		msg, _ := trnsl8.Get("Session Not Found")
+		Violation(w, r, msg.String())
 		return ctx
 	}
 
@@ -72,17 +69,20 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 	UserMessage, err := userValidator(token.UserID)
 	if err == commonErrors.UserNotFound {
 		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
-		Violation(w, r, "User Not Found")
+		msg, _ := trnsl8.Get("User Not Found")
+		Violation(w, r, msg.String())
 		return ctx
 	}
 	if err == commonErrors.UserNotActive {
 		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
-		Violation(w, r, "User Not Active")
+		msg, _ := trnsl8.Get("User Not Active")
+		Violation(w, r, msg.String())
 		return ctx
 	}
 	if err != nil {
 		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
-		Violation(w, r, "User Invalid")
+		msg, _ := trnsl8.Get("User Invalid")
+		Violation(w, r, msg.String())
 		return ctx
 	}
 	// user, err := userStore.Get(token.UserID)

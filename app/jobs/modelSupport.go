@@ -31,12 +31,11 @@ func NextRun(j Job) string {
 }
 
 func announceJob(j Job, action string) {
-	// name := translation.Get(j.Name())
-	// action = translation.Get(action)
-	name := j.Name()
-	action = action
-	//support.ServiceBanner("Service", name, action)
-	logger.ServiceLogger.Printf("[%v] [%v] %v", domain, name, action)
+
+	tName, _ := trnsl8.Get(j.Name())
+	tAction, _ := trnsl8.Get(action)
+
+	logger.ServiceLogger.Printf("[%v] [%v] %v", domain, tName.String(), tAction.String())
 }
 
 func getFreqHuman(freq string) string {
