@@ -10,27 +10,26 @@ import (
 	"github.com/mt1976/frantic-core/timing"
 )
 
-type sessionExpiry struct {
+type SessionExpiryJob struct {
 }
 
-func (p sessionExpiry) Run() error {
+func (p SessionExpiryJob) Run() error {
 	jobSessionExpiry()
-	NextRun(p)
 	return nil
 }
 
-func (p sessionExpiry) Service() func() {
+func (p SessionExpiryJob) Service() func() {
 	return func() {
 		p.Run()
 	}
 }
 
-func (p sessionExpiry) Schedule() string {
+func (p SessionExpiryJob) Schedule() string {
 	// Every 30 seconds
 	return "0/30 * * ? * * *"
 }
 
-func (p sessionExpiry) Name() string {
+func (p SessionExpiryJob) Name() string {
 	return "Session Expiry"
 }
 
