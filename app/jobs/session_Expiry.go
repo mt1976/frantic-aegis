@@ -65,16 +65,18 @@ func JobSessionExpiry() {
 	}
 
 	for x, s := range sessions {
+
 		if s.Expiry.Before(time.Now()) {
 			count++
-			logger.ServiceLogger.Printf("[%v] Session=[%v] Expired=[%v]", strings.ToUpper(name), s.ID, s.Expiry)
-			logger.SecurityLogger.Printf("[%v] (%v/%v) Session=[%v] Expired=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
+			logger.ServiceLogger.Printf("[%v] NOK (%v/%v) Session=[%v] EXPIRED=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
+			logger.SecurityLogger.Printf("[%v] NOK (%v/%v) Session=[%v] EXPIRED=[%v] User=[%v] Code=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry, s.UserID)
 			err := s.Delete(context.TODO(), "Session Expired")
 			if err != nil {
 				logger.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(name), err.Error())
 			}
 		} else {
-			logger.ServiceLogger.Printf("[%v] (%v/%v) Session=[%v] Expires=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
+			logger.ServiceLogger.Printf("[%v]  OK (%v/%v) Session=[%v] Expires=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
+			logger.SecurityLogger.Printf("[%v]  OK (%v/%v) Session=[%v] Expires=[%v] User=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry, s.UserID)
 		}
 	}
 
