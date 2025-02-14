@@ -6,8 +6,9 @@ import (
 
 var Template Job = template{} // This is a template for other jobs.
 
-//var DatabaseBackup Job = databaseBackup{}
-//var DatabasePrune Job = databasePrune{}
+// var DatabaseBackup Job = databaseBackup{}
+// var DatabasePrune Job = databasePrune{}
+var SessionExpiry Job = sessionExpiry{}
 
 func Start() {
 	// Start the job
@@ -18,6 +19,7 @@ func Start() {
 	//	Schedule(DatabasePrune)
 	// Check the status of the hosts
 	// Start all the background jobs
+	Schedule(SessionExpiry)
 	scheduledTasks.Start()
 	logger.ServiceLogger.Printf("[%v] Queue - Started", domain)
 }
