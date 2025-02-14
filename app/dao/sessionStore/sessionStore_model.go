@@ -6,8 +6,8 @@ import (
 	audit "github.com/mt1976/frantic-core/dao/audit"
 )
 
-// SessionStore represents a SessionStore entity.
-type SessionStore struct {
+// Aegis_SessionStore represents a Aegis_SessionStore entity.
+type Aegis_SessionStore struct {
 	ID     string      `storm:"id"` // primary key with auto increment
 	Raw    string      // raw ID before encoding
 	UserID int         `storm:"index"` // user key

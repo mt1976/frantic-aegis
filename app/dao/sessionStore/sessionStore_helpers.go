@@ -14,19 +14,19 @@ import (
 	stopwatch "github.com/mt1976/frantic-core/timing"
 )
 
-func (u *SessionStore) prepare() (SessionStore, error) {
+func (u *Aegis_SessionStore) prepare() (Aegis_SessionStore, error) {
 	//os.Exit(0)
 	//logger.ErrorLogger.Printf("ACT: VAL Validate")
 
 	return *u, nil
 }
 
-func (u *SessionStore) calculate() error {
+func (u *Aegis_SessionStore) calculate() error {
 	// Calculate the duration in days between the start and end dates
 	return nil
 }
 
-func (u *SessionStore) isDuplicateOf(id string) (SessionStore, error) {
+func (u *Aegis_SessionStore) isDuplicateOf(id string) (Aegis_SessionStore, error) {
 
 	//logger.InfoLogger.Printf("CHK: CheckUniqueCode %v", name)
 
@@ -36,7 +36,7 @@ func (u *SessionStore) isDuplicateOf(id string) (SessionStore, error) {
 	activityList, err := GetAll()
 	if err != nil {
 		logger.ErrorLogger.Printf("ERROR Getting all status: %v", err)
-		return SessionStore{}, err
+		return Aegis_SessionStore{}, err
 	}
 
 	// range through status list, if status code is found and deletedby is empty then return error
@@ -56,7 +56,7 @@ func (u *SessionStore) isDuplicateOf(id string) (SessionStore, error) {
 
 	// Return nil if the code is unique
 
-	return SessionStore{}, nil
+	return Aegis_SessionStore{}, nil
 }
 
 func BuildLookup() (lookup.Lookup, error) {
@@ -82,8 +82,8 @@ func BuildLookup() (lookup.Lookup, error) {
 	return rtnList, nil
 }
 
-func GetByUserID(userID int) []SessionStore {
-	var rtnList []SessionStore
+func GetByUserID(userID int) []Aegis_SessionStore {
+	var rtnList []Aegis_SessionStore
 	// Get all status
 	activityList, err := GetAll()
 	if err != nil {
@@ -101,9 +101,9 @@ func GetByUserID(userID int) []SessionStore {
 	return rtnList
 }
 
-func New(userID int) (SessionStore, error) {
+func New(userID int) (Aegis_SessionStore, error) {
 	// Create a new struct
-	u := SessionStore{UserID: userID}
+	u := Aegis_SessionStore{UserID: userID}
 	sessionID := id.GetUUID()
 	u.Raw = sessionID
 	u.ID = id.Encode(sessionID)

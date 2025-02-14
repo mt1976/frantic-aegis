@@ -16,7 +16,7 @@ import (
 
 var sessionExpiry = 30 // minutes
 
-func (u *SessionStore) Update(ctx context.Context, note string) error {
+func (u *Aegis_SessionStore) Update(ctx context.Context, note string) error {
 	if err := u.validate(); err != nil {
 		return err
 	}
@@ -43,25 +43,25 @@ func (u *SessionStore) Update(ctx context.Context, note string) error {
 	return nil
 }
 
-func GetById(id string) (SessionStore, error) {
+func GetById(id string) (Aegis_SessionStore, error) {
 	return GetBy("ID", id)
 }
 
-func GetBy(field, value string) (SessionStore, error) {
+func GetBy(field, value string) (Aegis_SessionStore, error) {
 	get := stopwatch.Start(domain, "Get", value)
-	u := SessionStore{}
+	u := Aegis_SessionStore{}
 	if err := database.Retrieve(field, value, &u); err != nil {
-		return SessionStore{}, fmt.Errorf("[%v] Reading Id=[%v][%v]", strings.ToUpper(domain), value, err.Error())
+		return Aegis_SessionStore{}, fmt.Errorf("[%v] Reading Id=[%v][%v]", strings.ToUpper(domain), value, err.Error())
 	}
 	if err := u.PostGet(); err != nil {
-		return SessionStore{}, err
+		return Aegis_SessionStore{}, err
 	}
 	get.Stop(1)
 	return u, nil
 }
 
-func GetAll() ([]SessionStore, error) {
-	uList := []SessionStore{}
+func GetAll() ([]Aegis_SessionStore, error) {
+	uList := []Aegis_SessionStore{}
 	gall := stopwatch.Start(domain, "Get All", "Get")
 	if errG := database.GetAll(&uList); errG != nil {
 		logger.ErrorLogger.Printf("[%v] Reading Id=[%v] %v ", strings.ToUpper(domain), "ALL", errG.Error())
@@ -77,7 +77,7 @@ func GetAll() ([]SessionStore, error) {
 	return dList, nil
 }
 
-func (u *SessionStore) Delete(ctx context.Context, note string) error {
+func (u *Aegis_SessionStore) Delete(ctx context.Context, note string) error {
 	logger.AuditLogger.Printf("DEL: [%v] Id=[%v]", strings.ToUpper(domain), u.ID)
 	_ = u.Audit.Action(ctx, audit.DELETE.WithMessage(note))
 	u.Dump("DEL")
@@ -111,7 +111,7 @@ func DeleteByID(ctx context.Context, id, note string) error {
 	return nil
 }
 
-func (u *SessionStore) Spew() {
+func (u *Aegis_SessionStore) Spew() {
 	ID := fmt.Sprintf("%04v", u.ID)
 	if u.ID == "" {
 		ID = "NEW"
@@ -119,12 +119,12 @@ func (u *SessionStore) Spew() {
 	logger.InfoLogger.Printf(" [%v] ID=[%v]", strings.ToUpper(domain), ID)
 }
 
-func (u *SessionStore) validate() error {
+func (u *Aegis_SessionStore) validate() error {
 	return nil
 }
 
-func PostGet(userList *[]SessionStore) ([]SessionStore, error) {
-	newList := []SessionStore{}
+func PostGet(userList *[]Aegis_SessionStore) ([]Aegis_SessionStore, error) {
+	newList := []Aegis_SessionStore{}
 	for _, user := range *userList {
 		if err := user.PostGet(); err != nil {
 			return nil, err
@@ -134,11 +134,11 @@ func PostGet(userList *[]SessionStore) ([]SessionStore, error) {
 	return newList, nil
 }
 
-func (u *SessionStore) PostGet() error {
+func (u *Aegis_SessionStore) PostGet() error {
 	return nil
 }
 
-func (u *SessionStore) Dump(name string) {
+func (u *Aegis_SessionStore) Dump(name string) {
 	io.Dump(domain, paths.Dumps(), name, u.ID, u)
 }
 

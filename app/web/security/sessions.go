@@ -110,7 +110,7 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 	return ctx
 }
 
-func setSessionContextValues(ctx context.Context, user securityModel.UserMessage, sessionID string, token sessionStore.SessionStore) context.Context {
+func setSessionContextValues(ctx context.Context, user securityModel.UserMessage, sessionID string, token sessionStore.Aegis_SessionStore) context.Context {
 	ctx = context.WithValue(ctx, sessionUserCodeKey, user.Code)
 	ctx = context.WithValue(ctx, sessionKey, sessionID)
 	ctx = context.WithValue(ctx, sessionUserIDKey, user.ID)
