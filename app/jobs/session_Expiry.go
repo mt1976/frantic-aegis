@@ -26,7 +26,8 @@ func (p sessionExpiry) Service() func() {
 }
 
 func (p sessionExpiry) Schedule() string {
-	return "25 0 * * *"
+	// Every 30 seconds
+	return "0/30 * * ? * * *"
 }
 
 func (p sessionExpiry) Name() string {
