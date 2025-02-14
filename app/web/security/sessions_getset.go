@@ -1,0 +1,33 @@
+package security
+
+import (
+	"context"
+
+	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
+	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
+)
+
+func Get(ctx context.Context) *securityModel.Session {
+	si := securityModel.Session{}
+	si.SessionID = ctx.Value(sessionKey).(string)
+	si.UserID = ctx.Value(sessionUserIDKey).(int)
+	si.Token = ctx.Value(sessionTokenKey).(sessionStore.SessionStore)
+	si.UserCode = ctx.Value(sessionUserCodeKey).(string)
+	return &si
+}
+
+func CurrentUserCode(ctx context.Context) string {
+	return ctx.Value(sessionUserCodeKey).(string)
+}
+
+func CurrentUserID(ctx context.Context) int {
+	return ctx.Value(sessionUserIDKey).(int)
+}
+
+func CurrentSessionID(ctx context.Context) string {
+	return ctx.Value(sessionKey).(string)
+}
+
+func CurrentToken(ctx context.Context) sessionStore.SessionStore {
+	return ctx.Value(sessionTokenKey).(sessionStore.SessionStore)
+}
