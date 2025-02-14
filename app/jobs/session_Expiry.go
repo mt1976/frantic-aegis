@@ -14,7 +14,7 @@ type SessionExpiryJob struct {
 }
 
 func (p SessionExpiryJob) Run() error {
-	jobSessionExpiry()
+	JobSessionExpiry()
 	return nil
 }
 
@@ -26,21 +26,21 @@ func (p SessionExpiryJob) Service() func() {
 
 func (p SessionExpiryJob) Schedule() string {
 	// Every 30 seconds
-	return "0/30 * * ? * * *"
+	return "0 * * ? * * *"
 }
 
 func (p SessionExpiryJob) Name() string {
 	return "Session Expiry"
 }
 
-func jobSessionExpiry() {
+func JobSessionExpiry() {
 	// Do something every day at midnight
 	name := "Session"
 	j := timing.Start(strings.ToUpper(name), "Expiry", "Monitor")
 
 	sessionLifespan := cfg.Security.SessionExpiry
 	if sessionLifespan == 0 {
-		logger.SecurityLogger.Printf("[%v] NO SESSION TIMEOUT, Session Life=[%v]", strings.ToUpper(name), sessionLifespan)
+		logger.ServiceLogger.Printf("[%v] NO SESSION TIMEOUT, Session Life=[%v]", strings.ToUpper(name), sessionLifespan)
 		return
 	}
 	logger.ServiceLogger.Printf("[%v] Session Life=[%v]", strings.ToUpper(name), sessionLifespan)
@@ -57,16 +57,24 @@ func jobSessionExpiry() {
 	}
 
 	noSessions := len(sessions)
-	logger.SecurityLogger.Printf("[%v] Sessions=[%v]", strings.ToUpper(name), noSessions)
+	logger.ServiceLogger.Printf("[%v] Sessions=[%v]", strings.ToUpper(name), noSessions)
+	if noSessions == 0 {
+		logger.ServiceLogger.Printf("[%v] No sessions to process", strings.ToUpper(name))
+		j.Stop(0)
+		return
+	}
 
-	for _, s := range sessions {
+	for x, s := range sessions {
 		if s.Expiry.Before(time.Now()) {
 			count++
-			logger.SecurityLogger.Printf("[%v] Session=[%v] Expired=[%v]", strings.ToUpper(name), s.ID, s.Expiry)
+			logger.ServiceLogger.Printf("[%v] Session=[%v] Expired=[%v]", strings.ToUpper(name), s.ID, s.Expiry)
+			logger.SecurityLogger.Printf("[%v] (%v/%v) Session=[%v] Expired=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
 			err := s.Delete(context.TODO(), "Session Expired")
 			if err != nil {
 				logger.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(name), err.Error())
 			}
+		} else {
+			logger.ServiceLogger.Printf("[%v] (%v/%v) Session=[%v] Expires=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
 		}
 	}
 
