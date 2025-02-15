@@ -34,8 +34,8 @@ func (j SessionExpiryJob) Schedule() string {
 }
 
 func (j SessionExpiryJob) Name() string {
-	returnValue, _ := translationServiceRequest.Get("Session Expiry").String()
-	return returnValue
+	returnValue, _ := translationServiceRequest.Get("Session Expiry")
+	return returnValue.String()
 }
 
 func JobSessionExpiry() {
