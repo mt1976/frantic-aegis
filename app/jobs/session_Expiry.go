@@ -26,7 +26,7 @@ func (p SessionExpiryJob) Service() func() {
 
 func (p SessionExpiryJob) Schedule() string {
 	// Every 30 seconds
-	return "0 * * ? * * *"
+	return "0/30 * * * * *"
 }
 
 func (p SessionExpiryJob) Name() string {
