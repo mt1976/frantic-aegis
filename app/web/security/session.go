@@ -11,7 +11,7 @@ import (
 
 var domain = "security"
 
-func GetSessionTokenFromReferer(r *http.Request) string {
+func ExtractSessionTokenFromReferer(r *http.Request) string {
 	referer := r.Referer()
 	refURI, err := url.Parse(referer)
 	if err != nil {
@@ -31,7 +31,7 @@ func GetSessionTokenFromReferer(r *http.Request) string {
 	return sessionID
 }
 
-func getSessionID(ps httprouter.Params, sessionKeyName string, r *http.Request) string {
+func extractSessionID(ps httprouter.Params, sessionKeyName string, r *http.Request) string {
 	sessionID := ps.ByName(sessionKeyName)
 	if sessionID == "" {
 		logger.SecurityLogger.Printf("[%v] No Session Key Found, checking headers [%v]", strings.ToUpper(domain), r.Header)
@@ -61,11 +61,11 @@ func getSessionID(ps httprouter.Params, sessionKeyName string, r *http.Request) 
 	}
 	if sessionID == "" {
 		logger.SecurityLogger.Printf("[%v] No Session Key Found, checking referer [%v]", strings.ToUpper(domain), r.Referer())
-		sessionID = GetSessionTokenFromReferer(r)
+		sessionID = ExtractSessionTokenFromReferer(r)
 	}
 	return sessionID
 }
 
-func GetSessionID(ps httprouter.Params, r *http.Request) string {
-	return getSessionID(ps, sessionKey, r)
+func ExtractSessionID(ps httprouter.Params, r *http.Request) string {
+	return extractSessionID(ps, sessionKey, r)
 }

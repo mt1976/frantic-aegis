@@ -4,6 +4,7 @@ import (
 	"github.com/mt1976/frantic-core/common"
 	"github.com/mt1976/frantic-core/dao/database"
 	"github.com/mt1976/frantic-core/logger"
+	"github.com/mt1976/frantic-core/timing"
 	trnsl8r "github.com/mt1976/trnsl8r_connect"
 )
 
@@ -30,7 +31,7 @@ var msgActionKey string
 var trnsl8 trnsl8r.Request
 
 func init() {
-
+	clock := timing.Start("security", "Initialise", "")
 	logger.TranslationLogger.Println("Initialised")
 	cfg = common.Get()
 	trnsServerProtocol = cfg.GetTranslationServerProtocol()
@@ -73,5 +74,5 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
+	clock.Stop(1)
 }

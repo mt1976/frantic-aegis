@@ -1,6 +1,7 @@
 package sessionStore
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -60,13 +61,14 @@ func (u *Aegis_SessionStore) isDuplicateOf(id string) (Aegis_SessionStore, error
 }
 
 func BuildLookup() (lookup.Lookup, error) {
-
+	clock := stopwatch.Start("Sessions", "BuildLookup", "")
 	//logger.InfoLogger.Printf("BuildLookup")
 
 	// Get all status
 	Activities, err := GetAll()
 	if err != nil {
 		logger.ErrorLogger.Printf("ERROR Getting all status: %v", err)
+		clock.Stop(0)
 		return lookup.Lookup{}, err
 	}
 
@@ -78,16 +80,18 @@ func BuildLookup() (lookup.Lookup, error) {
 	for _, a := range Activities {
 		rtnList.Data = append(rtnList.Data, lookup.LookupData{Key: a.ID, Value: a.ID})
 	}
-
+	clock.Stop(len(rtnList.Data))
 	return rtnList, nil
 }
 
 func GetByUserID(userID int) []Aegis_SessionStore {
+	clock := stopwatch.Start("Sessions", "GetByUserID", "")
 	var rtnList []Aegis_SessionStore
 	// Get all status
 	activityList, err := GetAll()
 	if err != nil {
 		logger.ErrorLogger.Printf("ERROR Getting all status: %v", err)
+		clock.Stop(0)
 		return rtnList
 	}
 
@@ -98,50 +102,55 @@ func GetByUserID(userID int) []Aegis_SessionStore {
 		}
 	}
 
+	clock.Stop(len(rtnList))
+
 	return rtnList
 }
 
 func New(userID int) (Aegis_SessionStore, error) {
+
+	clock := stopwatch.Start("Sessions", "New", "Create")
 	// Create a new struct
-	u := Aegis_SessionStore{UserID: userID}
+	s := Aegis_SessionStore{UserID: userID}
 	sessionID := id.GetUUID()
-	u.Raw = sessionID
-	u.ID = id.Encode(sessionID)
-	u.Expiry = time.Now().Add(time.Minute * time.Duration(sessionExpiry))
-	u.Dump("NEW")
+	s.Raw = sessionID
+	s.ID = id.Encode(sessionID)
+	s.Expiry = time.Now().Add(time.Minute * time.Duration(sessionExpiry))
+	s.Dump("NEW" + strings.ToUpper(domain))
 
 	// Record the create action in the audit data
-	_ = u.Audit.Action(nil, audit.CREATE.WithMessage(fmt.Sprintf("New Session for: %v", userID)))
+	_ = s.Audit.Action(context.TODO(), audit.CREATE.WithMessage(fmt.Sprintf("New Session for: %v", userID)))
 
 	// Save the status instance to the database
-	err := database.Create(&u)
+	err := database.Create(&s)
 	if err != nil {
 		// Log and panic if there is an error creating the status instance
-		logger.ErrorLogger.Printf("[%v] Creating Session=[%v] %e", strings.ToUpper(domain), u.ID, err)
+		logger.ErrorLogger.Printf("[%v] Creating Session=[%v] %e", strings.ToUpper(domain), s.ID, err)
 		panic(err)
 	}
 
-	logger.AuditLogger.Printf("[%v] [%v] ID=[%v] Notes[%v]", audit.CREATE, strings.ToUpper(domain), u.ID, fmt.Sprintf("New Session: %v", userID))
-
-	return u, nil
+	logger.AuditLogger.Printf("[%v] [%v] ID=[%v] Notes[%v]", audit.CREATE, strings.ToUpper(domain), s.ID, fmt.Sprintf("New Session: %v", userID))
+	clock.Stop(1)
+	return s, nil
 }
 
 func Initialise() error {
 
-	timeing := stopwatch.Start("SessionTokens", "Initialise", "")
+	clock := stopwatch.Start("Sessions", "Initialise", "")
 
 	// Delete all active session tokens
 	tokens, err := GetAll()
 	if err != nil {
 		logger.ErrorLogger.Printf("ERROR Getting all status: %v", err)
+		clock.Stop(0)
 		return err
 	}
 
 	noTokens := len(tokens)
 
 	for _, t := range tokens {
-		_ = DeleteByID(nil, t.ID, "Initialise")
+		_ = DeleteByID(context.TODO(), t.ID, "Initialise")
 	}
-	timeing.Stop(noTokens)
+	clock.Stop(noTokens)
 	return nil
 }

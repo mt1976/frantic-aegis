@@ -72,7 +72,7 @@ func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.Us
 			trace(r)
 			// Delegate request to the given handle
 			si := New(r.Context(), user.ID, userIDValidator)
-			r.URL.Query().Add(sessionKey, si.SessionID)
+			//r.URL.Query().Add(sessionKey, si.SessionID)
 			r.Header.Add(sessionKey, si.SessionID)
 			newURI := "/home?" + sessionKey + "=" + si.SessionID
 			http.Redirect(w, r, newURI, http.StatusFound)
@@ -148,7 +148,7 @@ func Validate(h httprouter.Handle) httprouter.Handle {
 
 		logger.SecurityLogger.Printf("[%v] Session Key Name: [%v]", strings.ToUpper(domain), sessionKey)
 
-		sessionID := getSessionID(ps, sessionKey, r)
+		sessionID := extractSessionID(ps, sessionKey, r)
 
 		logger.SecurityLogger.Printf("[%v] Session Key FOUND!: [%v]", strings.ToUpper(domain), sessionID)
 

@@ -13,30 +13,35 @@ import (
 type SessionExpiryJob struct {
 }
 
-func (p SessionExpiryJob) Run() error {
+func (j SessionExpiryJob) Run() error {
 	JobSessionExpiry()
 	return nil
 }
 
-func (p SessionExpiryJob) Service() func() {
+func (j SessionExpiryJob) Service() func() {
 	return func() {
-		p.Run()
+		err := j.Run()
+		if err != nil {
+			logger.ErrorLogger.Printf("[%v] Error=[%v]", j.Name(), err.Error())
+			panic(err)
+		}
 	}
 }
 
-func (p SessionExpiryJob) Schedule() string {
+func (j SessionExpiryJob) Schedule() string {
 	// Every 30 seconds
 	return "0/30 * * * * *"
 }
 
-func (p SessionExpiryJob) Name() string {
-	return "Session Expiry"
+func (j SessionExpiryJob) Name() string {
+	returnValue, _ := translationServiceRequest.Get("Session Expiry").String()
+	return returnValue
 }
 
 func JobSessionExpiry() {
 	// Do something every day at midnight
 	name := "Session"
-	j := timing.Start(strings.ToUpper(name), "Expiry", "Monitor")
+	clock := timing.Start(strings.ToUpper(name), "SessionExpiryJob", "")
 
 	sessionLifespan := cfg.Security.SessionExpiry
 	if sessionLifespan == 0 {
@@ -60,7 +65,7 @@ func JobSessionExpiry() {
 	logger.ServiceLogger.Printf("[%v] Sessions=[%v]", strings.ToUpper(name), noSessions)
 	if noSessions == 0 {
 		logger.ServiceLogger.Printf("[%v] No sessions to process", strings.ToUpper(name))
-		j.Stop(0)
+		clock.Stop(0)
 		return
 	}
 
@@ -79,5 +84,5 @@ func JobSessionExpiry() {
 			logger.SecurityLogger.Printf("[%v]  OK (%v/%v) Session=[%v] Expires=[%v] User=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry, s.UserID)
 		}
 	}
-	j.Stop(count)
+	clock.Stop(count)
 }

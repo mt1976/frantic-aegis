@@ -4,15 +4,16 @@ import (
 	"context"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
 	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
 	"github.com/mt1976/frantic-core/commonErrors"
 	"github.com/mt1976/frantic-core/logger"
+	"github.com/mt1976/frantic-core/timing"
 )
 
 func New(ctx context.Context, userID int, userIDValidator func(int) (securityModel.UserMessage, error)) *securityModel.Session {
+	clock := timing.Start(domain, "New", "")
 	SI := securityModel.Session{}
 
 	SS, err := sessionStore.New(userID)
@@ -33,10 +34,10 @@ func New(ctx context.Context, userID int, userIDValidator func(int) (securityMod
 	SI.Token = SS
 	SI.UserID = userID
 	SI.SessionID = SS.ID
-	SI.Life = SS.Expiry.Sub(time.Now())
+	SI.Life = 0
 	SI.UserCode = UserMessage.Code
 
-	ctx = setSessionContextValues(ctx, UserMessage, SI.SessionID, SS)
+	//ctx = setSessionContextValues(ctx, UserMessage, SI.SessionID, SS)
 
 	if appModeDev {
 		logger.InfoLogger.Printf("SessionID=[%v]", SI.SessionID)
@@ -46,6 +47,7 @@ func New(ctx context.Context, userID int, userIDValidator func(int) (securityMod
 		logger.InfoLogger.Printf("Life=[%v]", SI.Life)
 		logger.InfoLogger.Printf("SS=[%+v]", SS)
 	}
+	clock.Stop(1)
 	return &SI
 }
 
@@ -65,8 +67,9 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 	}
 
 	logger.SecurityLogger.Printf("[%v] EstablishSessionContext: UserID=[%v]", strings.ToUpper(domain), token.UserID)
-
+	clock := timing.Start(domain, "userValidator", "")
 	UserMessage, err := userValidator(token.UserID)
+	clock.Stop(1)
 	if err == commonErrors.UserNotFound {
 		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("User Not Found")
@@ -85,18 +88,6 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 		Violation(w, r, msg.String())
 		return ctx
 	}
-	// user, err := userStore.Get(token.UserID)
-	// if err != nil {
-	// 	logger.ErrorLogger.Printf("Error=[%v]", err.Error())
-	// 	Violation(w, r, "User Not Found")
-	// 	return ctx
-	// }
-
-	// if user.Active == false {
-	// 	logger.ErrorLogger.Printf("Error=[%v]", "User Not Active")
-	// 	Violation(w, r, "User Not Active")
-	// 	return ctx
-	// }
 
 	ctx = setSessionContextValues(ctx, UserMessage, sessionID, token)
 

@@ -16,18 +16,18 @@ func Get(ctx context.Context) *securityModel.Session {
 	return &si
 }
 
-func CurrentUserCode(ctx context.Context) string {
+func Current_UserCode(ctx context.Context) string {
 	return ctx.Value(sessionUserCodeKey).(string)
 }
 
-func CurrentUserID(ctx context.Context) int {
+func Current_UserID(ctx context.Context) int {
 	return ctx.Value(sessionUserIDKey).(int)
 }
 
-func CurrentSessionID(ctx context.Context) string {
+func Current_SessionID(ctx context.Context) string {
 	return ctx.Value(sessionKey).(string)
 }
 
-func CurrentToken(ctx context.Context) sessionStore.Aegis_SessionStore {
+func Current_SessionToken(ctx context.Context) sessionStore.Aegis_SessionStore {
 	return ctx.Value(sessionTokenKey).(sessionStore.Aegis_SessionStore)
 }
