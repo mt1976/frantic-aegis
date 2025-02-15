@@ -70,13 +70,13 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 	clock := timing.Start(domain, "userValidator", "")
 	UserMessage, err := userValidator(token.UserID)
 	clock.Stop(1)
-	if err == commonErrors.UserNotFound {
+	if err == commonErrors.ErrorUserNotFound {
 		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("User Not Found")
 		Violation(w, r, msg.String())
 		return ctx
 	}
-	if err == commonErrors.UserNotActive {
+	if err == commonErrors.ErrorUserNotActive {
 		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("User Not Active")
 		Violation(w, r, msg.String())
