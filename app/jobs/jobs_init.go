@@ -1,17 +1,17 @@
 package jobs
 
 import (
-	"github.com/mt1976/frantic-core/common"
-	"github.com/mt1976/frantic-core/logger"
+	"github.com/mt1976/frantic-core/commonConfig"
+	logger "github.com/mt1976/frantic-core/logHandler"
 	trnsl8r "github.com/mt1976/trnsl8r_connect"
 )
 
-var cfg *common.Settings
+var cfg *commonConfig.Settings
 var appName string
 var translationServiceRequest trnsl8r.Request
 
 func init() {
-	cfg = common.Get()
+	cfg = commonConfig.Get()
 	appName = cfg.GetApplicationName()
 	trnsServerProtocol := cfg.GetTranslationServerProtocol()
 	trnsServerHost := cfg.GetTranslationServerHost()

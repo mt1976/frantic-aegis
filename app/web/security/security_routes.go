@@ -8,7 +8,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
-	"github.com/mt1976/frantic-core/logger"
+	logger "github.com/mt1976/frantic-core/logHandler"
 )
 
 func AnnounceInsecureRoute(route string) string {

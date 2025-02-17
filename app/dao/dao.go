@@ -5,8 +5,8 @@ import (
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
-	"github.com/mt1976/frantic-core/common"
-	"github.com/mt1976/frantic-core/logger"
+	"github.com/mt1976/frantic-core/commonConfig"
+	logger "github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/timing"
 )
 
@@ -15,7 +15,7 @@ var Version = 1
 var DB *storm.DB
 var tableName = "database"
 
-func Initialise(cfg *common.Settings) error {
+func Initialise(cfg *commonConfig.Settings) error {
 	clock := timing.Start(name, "Initialise", "")
 	logger.InfoLogger.Printf("[%v] Initialising...", strings.ToUpper(name))
 

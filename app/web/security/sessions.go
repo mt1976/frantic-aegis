@@ -8,7 +8,7 @@ import (
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
 	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
 	"github.com/mt1976/frantic-core/commonErrors"
-	"github.com/mt1976/frantic-core/logger"
+	logger "github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/timing"
 )
 

@@ -1,3 +1,5 @@
 package jobs
 
-var UserSessionExpiration Job = SessionExpiryJob{}
+import "github.com/mt1976/frantic-core/jobs"
+
+var UserSessionExpiration jobs.Job = SessionExpiryJob{}

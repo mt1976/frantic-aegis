@@ -3,7 +3,7 @@ package security
 import (
 	"net/http"
 
-	"github.com/mt1976/frantic-core/logger"
+	logger "github.com/mt1976/frantic-core/logHandler"
 )
 
 // func templatedHTML() string {

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/mt1976/frantic-core/logger"
+	logger "github.com/mt1976/frantic-core/logHandler"
 )
 
 var domain = "security"

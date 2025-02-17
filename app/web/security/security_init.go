@@ -1,9 +1,9 @@
 package security
 
 import (
-	"github.com/mt1976/frantic-core/common"
+	"github.com/mt1976/frantic-core/commonConfig"
 	"github.com/mt1976/frantic-core/dao/database"
-	"github.com/mt1976/frantic-core/logger"
+	logger "github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/timing"
 	trnsl8r "github.com/mt1976/trnsl8r_connect"
 )
@@ -23,7 +23,7 @@ var trnsServerPort int
 var trnsServerProtocol string
 var trnsLocale string
 var appName string
-var cfg *common.Settings
+var cfg *commonConfig.Settings
 var msgTypeKey string
 var msgTitleKey string
 var msgContentKey string
@@ -33,7 +33,7 @@ var trnsl8 trnsl8r.Request
 func init() {
 	clock := timing.Start("security", "Initialise", "")
 	logger.TranslationLogger.Println("Initialised")
-	cfg = common.Get()
+	cfg = commonConfig.Get()
 	trnsServerProtocol = cfg.GetTranslationServerProtocol()
 	trnsServerHost = cfg.GetTranslationServerHost()
 	trnsServerPort = cfg.GetTranslationServerPort()
@@ -46,7 +46,7 @@ func init() {
 	sessionUserCodeKey = cfg.GetSecuritySessionUserCodeKey()
 	sessionTokenKey = cfg.GetSecuritySessionTokenKey()
 
-	appModeDev = cfg.IsApplicationMode(common.MODE_DEVELOPMENT)
+	appModeDev = cfg.IsApplicationMode(commonConfig.MODE_DEVELOPMENT)
 	if appModeDev {
 		logger.SecurityLogger.Printf("sessionKey: %v\n", sessionKey)
 		logger.SecurityLogger.Printf("sessionUserIDKey: %v\n", sessionUserIDKey)

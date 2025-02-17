@@ -8,8 +8,8 @@ import (
 
 	audit "github.com/mt1976/frantic-core/dao/audit"
 	"github.com/mt1976/frantic-core/dao/database"
-	"github.com/mt1976/frantic-core/io"
-	"github.com/mt1976/frantic-core/logger"
+	io "github.com/mt1976/frantic-core/ioHelpers"
+	logger "github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/paths"
 	stopwatch "github.com/mt1976/frantic-core/timing"
 )

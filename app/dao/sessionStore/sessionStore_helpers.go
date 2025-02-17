@@ -10,8 +10,8 @@ import (
 	audit "github.com/mt1976/frantic-core/dao/audit"
 	"github.com/mt1976/frantic-core/dao/database"
 	lookup "github.com/mt1976/frantic-core/dao/lookup"
-	"github.com/mt1976/frantic-core/id"
-	"github.com/mt1976/frantic-core/logger"
+	id "github.com/mt1976/frantic-core/idHelpers"
+	logger "github.com/mt1976/frantic-core/logHandler"
 	stopwatch "github.com/mt1976/frantic-core/timing"
 )
 
