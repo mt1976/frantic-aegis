@@ -11,6 +11,18 @@ author = "Cervical Hamster"
 license= "MIT"
 locale = "en_GB"
 
+[Database]
+version = 2
+type = "storm"
+host = ""
+port = 0
+name = ""
+user = ""
+pass = ""
+path = ""
+poolsize = 10
+timeout = 0
+
 [Server]
 host = "n/a"
 port = 5052

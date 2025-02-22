@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/asdine/storm/v3 v3.2.1
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/mt1976/frantic-core v1.2.36
+	github.com/mt1976/frantic-core v1.2.38
 )
 
 require (
@@ -25,7 +25,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.25.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/mt1976/trnsl8r_connect v1.2.5
+	github.com/mt1976/trnsl8r_connect v1.2.6
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
 	go.etcd.io/bbolt v1.4.0 // indirect

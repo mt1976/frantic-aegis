@@ -14,13 +14,14 @@ import (
 )
 
 type SessionExpiryJob struct {
-	databaseAccessors []func() (*database.DB, error)
+	databaseAccessors []func() ([]*database.DB, error)
 }
 
 // AddFunction implements jobs.Job.
-func (job *SessionExpiryJob) AddDatabaseAccessFunctions(fn func() (*database.DB, error)) {
-	// do nothing
-	panic("Not Implemented")
+func (job *SessionExpiryJob) AddDatabaseAccessFunctions(fn func() ([]*database.DB, error)) {
+	logHandler.ServiceLogger.Printf("[%v] [%v] Adding Function", domain, job.Name())
+	job.databaseAccessors = append(job.databaseAccessors, fn)
+	logHandler.ServiceLogger.Printf("[%v] [%v] Function Added - No Funcs=(%v)", domain, job.Name(), len(job.databaseAccessors))
 }
 
 // Description implements jobs.Job.
@@ -29,16 +30,24 @@ func (j *SessionExpiryJob) Description() string {
 }
 
 func (j *SessionExpiryJob) Run() error {
+	clock := timing.Start(jobs.CodedName(j), actions.PROCESS.GetCode(), j.Description())
 	jobs.PreRun(j)
+	count := 0
+
 	for _, f := range j.databaseAccessors {
-		db, err := f()
+		dbList, err := f()
 		if err != nil {
 			logHandler.ErrorLogger.Printf("[%v] Error=[%v]", j.Name(), err.Error())
 			continue
 		}
-		JobSessionExpiry(j, *db)
+		for _, db := range dbList {
+			JobSessionExpiry(j, *db)
+			count++
+		}
 	}
+
 	jobs.PostRun(j)
+	clock.Stop(count)
 	return nil
 }
 

@@ -332,12 +332,8 @@ func Drop() error {
 
 // FetchDatabaseInstances returns the database connection
 func FetchDatabaseInstances() func() ([]*database.DB, error) {
-
 	//logHandler.InfoLogger.Println("GETDB")
 	return func() ([]*database.DB, error) {
-		//logHandler.InfoLogger.Printf("GETDB2")
-		databaseList := []*database.DB{}
-		databaseList = append(databaseList, activeDB)
-		return databaseList, nil
+		return []*database.DB{activeDB}, nil
 	}
 }

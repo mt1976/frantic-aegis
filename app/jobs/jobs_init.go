@@ -9,6 +9,7 @@ import (
 var cfg *commonConfig.Settings
 var appName string
 var translationServiceRequest trnsl8r.Request
+var domain = "Security"
 
 func init() {
 	cfg = commonConfig.Get()
