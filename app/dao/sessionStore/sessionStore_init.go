@@ -28,7 +28,7 @@ func Initialise(ctx context.Context) {
 		return
 	}
 	// For a specific database connection, use NamedConnect, otherwise use Connect
-	activeDB = database.ConnectToNamedDB("Session")
+	activeDB = database.ConnectToNamedDB("aegis")
 	// activeDB = database.Connect()
 	initialised = true
 	timing.Stop(1)

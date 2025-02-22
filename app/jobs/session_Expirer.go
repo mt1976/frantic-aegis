@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
+	"github.com/mt1976/frantic-core/dao/actions"
 	"github.com/mt1976/frantic-core/dao/database"
 	"github.com/mt1976/frantic-core/jobs"
 	"github.com/mt1976/frantic-core/logHandler"
@@ -13,26 +14,35 @@ import (
 )
 
 type SessionExpiryJob struct {
+	databaseAccessors []func() (*database.DB, error)
 }
 
 // AddFunction implements jobs.Job.
-func (j SessionExpiryJob) AddFunction(f func() (*database.DB, error)) {
-	panic("unimplemented")
+func (job *SessionExpiryJob) AddDatabaseAccessFunctions(fn func() (*database.DB, error)) {
+	// do nothing
+	panic("Not Implemented")
 }
 
 // Description implements jobs.Job.
-func (j SessionExpiryJob) Description() string {
-	panic("unimplemented")
+func (j *SessionExpiryJob) Description() string {
+	return "Session Expiry Process, Deletes Expired Sessions"
 }
 
-func (j SessionExpiryJob) Run() error {
+func (j *SessionExpiryJob) Run() error {
 	jobs.PreRun(j)
-	JobSessionExpiry()
+	for _, f := range j.databaseAccessors {
+		db, err := f()
+		if err != nil {
+			logHandler.ErrorLogger.Printf("[%v] Error=[%v]", j.Name(), err.Error())
+			continue
+		}
+		JobSessionExpiry(j, *db)
+	}
 	jobs.PostRun(j)
 	return nil
 }
 
-func (j SessionExpiryJob) Service() func() {
+func (j *SessionExpiryJob) Service() func() {
 	return func() {
 		err := j.Run()
 		if err != nil {
@@ -42,20 +52,20 @@ func (j SessionExpiryJob) Service() func() {
 	}
 }
 
-func (j SessionExpiryJob) Schedule() string {
+func (j *SessionExpiryJob) Schedule() string {
 	// Every 30 seconds
 	return "0/30 * * * * *"
 }
 
-func (j SessionExpiryJob) Name() string {
+func (j *SessionExpiryJob) Name() string {
 	returnValue, _ := translationServiceRequest.Get("Session Expiry")
 	return returnValue.String()
 }
 
-func JobSessionExpiry() {
+func JobSessionExpiry(j jobs.Job, db database.DB) {
 	// Do something every day at midnight
-	name := "Session"
-	clock := timing.Start(strings.ToUpper(name), "SessionExpiryJob", "")
+	name := jobs.CodedName(j)
+	clock := timing.Start(name, actions.START.GetCode(), j.Description())
 
 	sessionLifespan := cfg.Security.SessionExpiry
 	if sessionLifespan == 0 {
@@ -68,10 +78,12 @@ func JobSessionExpiry() {
 	// Get all the sessions
 	// For each session, check the expiry date
 	// If the expiry date is less than now, then delete the session
+	var sessions []sessionStore.Session_Store
 
-	sessions, err := sessionStore.GetAll()
+	err := db.GetAll(&sessions)
 	if err != nil {
 		logHandler.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(name), err.Error())
+		clock.Stop(0)
 		return
 	}
 

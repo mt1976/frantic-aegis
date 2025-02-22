@@ -330,10 +330,14 @@ func Drop() error {
 	return activeDB.Drop(Session_Store{})
 }
 
-func GetDB() func() (*database.DB, error) {
+// FetchDatabaseInstances returns the database connection
+func FetchDatabaseInstances() func() ([]*database.DB, error) {
+
 	//logHandler.InfoLogger.Println("GETDB")
-	return func() (*database.DB, error) {
+	return func() ([]*database.DB, error) {
 		//logHandler.InfoLogger.Printf("GETDB2")
-		return database.Connect(), nil
+		databaseList := []*database.DB{}
+		databaseList = append(databaseList, activeDB)
+		return databaseList, nil
 	}
 }

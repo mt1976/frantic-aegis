@@ -45,6 +45,8 @@ github.com/mt1976/frantic-core v1.2.11 h1:Mdv6wEFlHiqkVvYwpy1+xEMHtjGCc/e9XH0+U3
 github.com/mt1976/frantic-core v1.2.11/go.mod h1:gojOAHA4O77ofPA9BsrEMUpMKdTVMkPbiN4xcneO6cs=
 github.com/mt1976/frantic-core v1.2.35 h1:7o2xwsjjyY4qL6pM6ytmGFmSdtBzDHT4XQfqRw6m+PI=
 github.com/mt1976/frantic-core v1.2.35/go.mod h1:guMRebxQK2q+p09BmKtVBPk0EdLauHD2QEdqRFVlIv0=
+github.com/mt1976/frantic-core v1.2.36 h1:XfOY960093JyoKTusSV90ys1WXkPtOpDlx1MKul0Chs=
+github.com/mt1976/frantic-core v1.2.36/go.mod h1:guMRebxQK2q+p09BmKtVBPk0EdLauHD2QEdqRFVlIv0=
 github.com/mt1976/trnsl8r_connect v1.2.4 h1:5tv+VxdARZpfnD26oSpR2sFc0jXh4w8D7UEZKau++Ec=
 github.com/mt1976/trnsl8r_connect v1.2.4/go.mod h1:RRmo+KbxaYLjrTlMrXSNfWQr07duETOLHqzRjJnxVmA=
 github.com/mt1976/trnsl8r_connect v1.2.5 h1:tcik53FeHkKQkL7K+jKSCerJxsPHJN6fStsQtHfwoKM=
