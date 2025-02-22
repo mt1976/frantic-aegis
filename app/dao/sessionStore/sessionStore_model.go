@@ -1,16 +1,37 @@
 package sessionStore
 
+// Data Access Object Session
+// Version: 0.2.0
+// Updated on: 2021-09-10
+
 import (
 	"time"
 
 	audit "github.com/mt1976/frantic-core/dao/audit"
 )
 
-// Aegis_SessionStore represents a Aegis_SessionStore entity.
-type Aegis_SessionStore struct {
-	ID     string      `storm:"id"` // primary key with auto increment
-	Raw    string      // raw ID before encoding
-	UserID int         `storm:"index"` // user key
-	Expiry time.Time   // expiry time
-	Audit  audit.Audit // audit data
+// Session_Store represents a Session_Store entity.
+type Session_Store struct {
+	ID        int         `storm:"id,increment=100000"` // primary key with auto increment
+	Key       string      `storm:"unique"`              // key, not used
+	SessionID string      `storm:"index"`               // session key
+	Raw       string      `storm:"index"`               // raw ID before encoding
+	UserID    int         `storm:"index"`               // user key
+	UserCode  string      `storm:"index"`               // user code
+	Expiry    time.Time   // expiry time
+	Audit     audit.Audit // audit data
 }
+
+// Define the field set as names
+var (
+	FIELD_ID        = "ID"
+	FIELD_Key       = "Key"
+	FIELD_SessionID = "SessionID"
+	FIELD_Raw       = "Raw"
+	FIELD_UserID    = "UserID"
+	FIELD_UserCode  = "UserCode"
+	FIELD_Expiry    = "Expiry"
+	FIELD_Audit     = "Audit"
+)
+
+var domain = "Session"

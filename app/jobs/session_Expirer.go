@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
+	"github.com/mt1976/frantic-core/dao/database"
 	"github.com/mt1976/frantic-core/jobs"
 	"github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/timing"
@@ -14,10 +15,20 @@ import (
 type SessionExpiryJob struct {
 }
 
+// AddFunction implements jobs.Job.
+func (j SessionExpiryJob) AddFunction(f func() (*database.DB, error)) {
+	panic("unimplemented")
+}
+
+// Description implements jobs.Job.
+func (j SessionExpiryJob) Description() string {
+	panic("unimplemented")
+}
+
 func (j SessionExpiryJob) Run() error {
-	jobs.Announce(j, "Started")
+	jobs.PreRun(j)
 	JobSessionExpiry()
-	jobs.Announce(j, "Completed")
+	jobs.PostRun(j)
 	return nil
 }
 
@@ -78,7 +89,7 @@ func JobSessionExpiry() {
 			count++
 			logHandler.ServiceLogger.Printf("[%v] NOK (%v/%v) Session=[%v] EXPIRED=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
 			logHandler.SecurityLogger.Printf("[%v] NOK (%v/%v) Session=[%v] EXPIRED=[%v] User=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry, s.UserID)
-			err := s.Delete(context.TODO(), "Session Expired")
+			err := sessionStore.Delete(context.TODO(), s.ID, "Session Expired")
 			if err != nil {
 				logHandler.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(name), err.Error())
 			}

@@ -63,7 +63,7 @@ func init() {
 	serverHost = cfg.GetServerHost()
 	serverProtocol = cfg.GetServerProtocol()
 
-	database.NamedConnect("aegis")
+	database.ConnectToNamedDB("aegis")
 
 	trnsServerProtocol := cfg.GetTranslationServerProtocol()
 	trnsServerHost := cfg.GetTranslationServerHost()

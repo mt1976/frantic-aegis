@@ -11,5 +11,5 @@ type Session struct {
 	Life      time.Duration
 	UserID    int
 	UserCode  string
-	Token     sessionStore.Aegis_SessionStore
+	Token     sessionStore.Session_Store
 }

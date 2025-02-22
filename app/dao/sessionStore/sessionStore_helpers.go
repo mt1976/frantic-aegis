@@ -1,96 +1,107 @@
 package sessionStore
 
+// Data Access Object Session - Sessionstore
+// Version: 0.2.0
+// Updated on: 2021-09-10
+
 import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
-	appError "github.com/mt1976/frantic-core/commonErrors"
-	audit "github.com/mt1976/frantic-core/dao/audit"
-	"github.com/mt1976/frantic-core/dao/database"
-	lookup "github.com/mt1976/frantic-core/dao/lookup"
-	id "github.com/mt1976/frantic-core/idHelpers"
-	logger "github.com/mt1976/frantic-core/logHandler"
-	stopwatch "github.com/mt1976/frantic-core/timing"
+	"github.com/mt1976/frantic-core/commonErrors"
+	"github.com/mt1976/frantic-core/dao"
+	"github.com/mt1976/frantic-core/dao/actions"
+	"github.com/mt1976/frantic-core/dao/audit"
+	"github.com/mt1976/frantic-core/logHandler"
+	"github.com/mt1976/frantic-core/timing"
 )
 
-func (u *Aegis_SessionStore) prepare() (Aegis_SessionStore, error) {
+func (record *Session_Store) prepare() (Session_Store, error) {
 	//os.Exit(0)
 	//logger.ErrorLogger.Printf("ACT: VAL Validate")
+	dao.CheckDAOReadyState(domain, audit.PROCESS, initialised) // Check the DAO has been initialised, Mandatory.
 
-	return *u, nil
+	return *record, nil
 }
 
-func (u *Aegis_SessionStore) calculate() error {
+func (record *Session_Store) calculate() error {
+
+	dao.CheckDAOReadyState(domain, audit.PROCESS, initialised) // Check the DAO has been initialised, Mandatory.
+
 	// Calculate the duration in days between the start and end dates
 	return nil
 }
 
-func (u *Aegis_SessionStore) isDuplicateOf(id string) (Aegis_SessionStore, error) {
+func (record *Session_Store) isDuplicateOf(id string) (Session_Store, error) {
 
-	//logger.InfoLogger.Printf("CHK: CheckUniqueCode %v", name)
+	dao.CheckDAOReadyState(domain, audit.PROCESS, initialised) // Check the DAO has been initialised, Mandatory.
 
 	//TODO: Could be replaced with a simple read...
 
 	// Get all status
-	activityList, err := GetAll()
+	recordList, err := GetAll()
 	if err != nil {
-		logger.ErrorLogger.Printf("ERROR Getting all status: %v", err)
-		return Aegis_SessionStore{}, err
+		logHandler.ErrorLogger.Printf("Getting all %v failed %v", domain, err.Error())
+		return Session_Store{}, err
 	}
 
 	// range through status list, if status code is found and deletedby is empty then return error
-	for _, a := range activityList {
+	for _, checkRecord := range recordList {
 		//s.Dump(!,strings.ToUpper(code) + "-uchk-" + s.Code)
 		testValue := strings.ToUpper(id)
-		checkValue := strings.ToUpper(a.ID)
+		checkValue := strings.ToUpper(checkRecord.Key)
 		//logger.InfoLogger.Printf("CHK: TestValue:[%v] CheckValue:[%v]", testValue, checkValue)
 		//logger.InfoLogger.Printf("CHK: Code:[%v] s.Code:[%v] s.Audit.DeletedBy:[%v]", testCode, s.Code, s.Audit.DeletedBy)
-		if checkValue == testValue && a.Audit.DeletedBy == "" {
-			logger.InfoLogger.Printf("[%v] DUPLICATE %v already in use", strings.ToUpper(domain), u.ID)
-			return a, appError.ErrorDuplicate
+		if checkValue == testValue && checkRecord.Audit.DeletedBy == "" {
+			logHandler.WarningLogger.Printf("Duplicate %v, %v already in use", strings.ToUpper(domain), record.ID)
+			return checkRecord, commonErrors.ErrorDuplicate
 		}
 	}
 
-	//logger.InfoLogger.Printf("CHK: %v is unique", strings.ToUpper(name))
-
-	// Return nil if the code is unique
-
-	return Aegis_SessionStore{}, nil
+	return Session_Store{}, nil
 }
 
-func BuildLookup() (lookup.Lookup, error) {
-	clock := stopwatch.Start("Sessions", "BuildLookup", "")
-	//logger.InfoLogger.Printf("BuildLookup")
+func ClearDown(ctx context.Context) error {
+	logHandler.EventLogger.Printf("Clearing %v", domain)
 
-	// Get all status
-	Activities, err := GetAll()
+	dao.CheckDAOReadyState(domain, audit.PROCESS, initialised) // Check the DAO has been initialised, Mandatory.
+
+	clock := timing.Start(domain, actions.CLEAR.GetCode(), "INITIALISE")
+
+	// Delete all active session recordList
+	recordList, err := GetAll()
 	if err != nil {
-		logger.ErrorLogger.Printf("ERROR Getting all status: %v", err)
+		logHandler.ErrorLogger.Print(commonErrors.WrapDAOInitialisationError(domain, err).Error())
 		clock.Stop(0)
-		return lookup.Lookup{}, err
+		return commonErrors.WrapDAOInitialisationError(domain, err)
 	}
 
-	// Create a new Lookup
-	var rtnList lookup.Lookup
-	rtnList.Data = make([]lookup.LookupData, 0)
+	noRecords := len(recordList)
+	count := 0
 
-	// range through Behaviour list, if status code is found and deletedby is empty then return error
-	for _, a := range Activities {
-		rtnList.Data = append(rtnList.Data, lookup.LookupData{Key: a.ID, Value: a.ID})
+	for thisRecord, record := range recordList {
+		logHandler.InfoLogger.Printf("Deleting %v (%v/%v) %v", domain, thisRecord, noRecords, record.Key)
+		delErr := Delete(ctx, record.ID, fmt.Sprintf("Clearing %v %v @ initialisation ", domain, record.ID))
+		if delErr != nil {
+			logHandler.ErrorLogger.Print(commonErrors.WrapDAOInitialisationError(domain, delErr).Error())
+			continue
+		}
+		count++
 	}
-	clock.Stop(len(rtnList.Data))
-	return rtnList, nil
+
+	clock.Stop(count)
+
+	return nil
 }
 
-func GetByUserID(userID int) []Aegis_SessionStore {
-	clock := stopwatch.Start("Sessions", "GetByUserID", "")
-	var rtnList []Aegis_SessionStore
+func GetByUserID(userID int) []Session_Store {
+	clock := timing.Start("Sessions", "GetByUserID", "")
+	var rtnList []Session_Store
 	// Get all status
 	activityList, err := GetAll()
 	if err != nil {
-		logger.ErrorLogger.Printf("ERROR Getting all status: %v", err)
+		logHandler.ErrorLogger.Printf("ERROR Getting all status: %v", err)
 		clock.Stop(0)
 		return rtnList
 	}
@@ -107,50 +118,25 @@ func GetByUserID(userID int) []Aegis_SessionStore {
 	return rtnList
 }
 
-func New(userID int) (Aegis_SessionStore, error) {
-
-	clock := stopwatch.Start("Sessions", "New", "Create")
-	// Create a new struct
-	s := Aegis_SessionStore{UserID: userID}
-	sessionID := id.GetUUID()
-	s.Raw = sessionID
-	s.ID = id.Encode(sessionID)
-	s.Expiry = time.Now().Add(time.Minute * time.Duration(sessionExpiry))
-	s.Dump("NEW" + strings.ToUpper(domain))
-
-	// Record the create action in the audit data
-	_ = s.Audit.Action(context.TODO(), audit.CREATE.WithMessage(fmt.Sprintf("New Session for: %v", userID)))
-
-	// Save the status instance to the database
-	err := database.Create(&s)
+func GetByUserCode(userCode string) []Session_Store {
+	clock := timing.Start("Sessions", "GetByUserID", "")
+	var rtnList []Session_Store
+	// Get all status
+	activityList, err := GetAll()
 	if err != nil {
-		// Log and panic if there is an error creating the status instance
-		logger.ErrorLogger.Printf("[%v] Creating Session=[%v] %e", strings.ToUpper(domain), s.ID, err)
-		panic(err)
-	}
-
-	logger.AuditLogger.Printf("[%v] [%v] ID=[%v] Notes[%v]", audit.CREATE, strings.ToUpper(domain), s.ID, fmt.Sprintf("New Session: %v", userID))
-	clock.Stop(1)
-	return s, nil
-}
-
-func Initialise() error {
-
-	clock := stopwatch.Start("Sessions", "Initialise", "")
-
-	// Delete all active session tokens
-	tokens, err := GetAll()
-	if err != nil {
-		logger.ErrorLogger.Printf("ERROR Getting all status: %v", err)
+		logHandler.ErrorLogger.Printf("ERROR Getting all status: %v", err)
 		clock.Stop(0)
-		return err
+		return rtnList
 	}
 
-	noTokens := len(tokens)
-
-	for _, t := range tokens {
-		_ = DeleteByID(context.TODO(), t.ID, "Initialise")
+	// range through status list, if status code is found and deletedby is empty then return error
+	for _, a := range activityList {
+		if a.UserCode == userCode {
+			rtnList = append(rtnList, a)
+		}
 	}
-	clock.Stop(noTokens)
-	return nil
+
+	clock.Stop(len(rtnList))
+
+	return rtnList
 }

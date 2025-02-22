@@ -16,11 +16,6 @@ func New(ctx context.Context, userID int, userIDValidator func(int) (securityMod
 	clock := timing.Start(domain, "New", "")
 	SI := securityModel.Session{}
 
-	SS, err := sessionStore.New(userID)
-	if err != nil {
-		panic(err)
-	}
-
 	// U, err := userStore.Get(userID)
 	// if err != nil {
 	// 	panic(err)
@@ -31,9 +26,14 @@ func New(ctx context.Context, userID int, userIDValidator func(int) (securityMod
 		panic(err)
 	}
 
+	SS, err := sessionStore.New(UserMessage.ID, UserMessage.Code)
+	if err != nil {
+		panic(err)
+	}
+
 	SI.Token = SS
-	SI.UserID = userID
-	SI.SessionID = SS.ID
+	SI.UserID = UserMessage.ID
+	SI.SessionID = SS.SessionID
 	SI.Life = 0
 	SI.UserCode = UserMessage.Code
 
@@ -58,7 +58,7 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 
 	logger.SecurityLogger.Printf("[%v] EstablishSessionContext: Session=[%v]", strings.ToUpper(domain), sessionID)
 
-	token, err := sessionStore.GetById(sessionID)
+	token, err := sessionStore.GetBy(sessionStore.FIELD_SessionID, sessionID)
 	if err != nil {
 		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("Session Not Found")
@@ -66,7 +66,7 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 		return ctx
 	}
 
-	logger.SecurityLogger.Printf("[%v] EstablishSessionContext: UserID=[%v]", strings.ToUpper(domain), token.UserID)
+	logger.SecurityLogger.Printf("[%v] EstablishSessionContext: UserID=[%v] (%v)", strings.ToUpper(domain), token.UserID, token.UserCode)
 	clock := timing.Start(domain, "userValidator", "")
 	UserMessage, err := userValidator(token.UserID)
 	clock.Stop(1)
@@ -95,16 +95,18 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
 		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
 		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserIDKey, UserMessage.ID)
+		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
 		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, token.Expiry)
 	}
 
 	return ctx
 }
 
-func setSessionContextValues(ctx context.Context, user securityModel.UserMessage, sessionID string, token sessionStore.Aegis_SessionStore) context.Context {
+func setSessionContextValues(ctx context.Context, user securityModel.UserMessage, sessionID string, token sessionStore.Session_Store) context.Context {
 	ctx = context.WithValue(ctx, sessionUserCodeKey, user.Code)
 	ctx = context.WithValue(ctx, sessionKey, sessionID)
 	ctx = context.WithValue(ctx, sessionUserIDKey, user.ID)
+	ctx = context.WithValue(ctx, sessionUserCodeKey, user.Code)
 	ctx = context.WithValue(ctx, sessionExpiryKey, token.Expiry)
 	return ctx
 }

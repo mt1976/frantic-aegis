@@ -1,36 +1,27 @@
 package dao
 
 import (
-	"strings"
+	"context"
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
 	"github.com/mt1976/frantic-core/commonConfig"
+	"github.com/mt1976/frantic-core/dao/actions"
 	logger "github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/timing"
 )
 
-var name = "DAO"
+var name = "Session Management"
 var Version = 1
 var DB *storm.DB
-var tableName = "database"
 
 func Initialise(cfg *commonConfig.Settings) error {
-	clock := timing.Start(name, "Initialise", "")
-	logger.InfoLogger.Printf("[%v] Initialising...", strings.ToUpper(name))
+	clock := timing.Start(name, actions.INITIALISE.GetCode(), name)
+	logger.InfoLogger.Printf("Initialising %v...", name)
 
-	// Preload the status store
-	logger.InfoBanner(name, "Status", "Importing")
-	// err := statusStore.ImportCSV()
-	// if err != nil {
-	// 	logger.ErrorLogger.Fatal(err.Error())
-	// }
+	sessionStore.Initialise(context.TODO())
 
-	sessionStore.Initialise()
-
-	//routes.Initialise(cfg)
-
-	logger.InfoLogger.Printf("[%v] Initialised", strings.ToUpper(name))
+	logger.InfoLogger.Printf("Initialised %v", name)
 	clock.Stop(1)
 	return nil
 }
