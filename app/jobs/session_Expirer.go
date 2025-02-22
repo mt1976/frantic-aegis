@@ -7,7 +7,7 @@ import (
 
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
 	"github.com/mt1976/frantic-core/jobs"
-	logger "github.com/mt1976/frantic-core/logHandler"
+	"github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/timing"
 )
 
@@ -25,7 +25,7 @@ func (j SessionExpiryJob) Service() func() {
 	return func() {
 		err := j.Run()
 		if err != nil {
-			logger.ErrorLogger.Printf("[%v] Error=[%v]", j.Name(), err.Error())
+			logHandler.ErrorLogger.Printf("[%v] Error=[%v]", j.Name(), err.Error())
 			panic(err)
 		}
 	}
@@ -48,10 +48,10 @@ func JobSessionExpiry() {
 
 	sessionLifespan := cfg.Security.SessionExpiry
 	if sessionLifespan == 0 {
-		logger.ServiceLogger.Printf("[%v] NO SESSION TIMEOUT, Session Life=[%v]", strings.ToUpper(name), sessionLifespan)
+		logHandler.ServiceLogger.Printf("[%v] NO SESSION TIMEOUT, Session Life=[%v]", strings.ToUpper(name), sessionLifespan)
 		return
 	}
-	logger.ServiceLogger.Printf("[%v] Session Life=[%v]", strings.ToUpper(name), sessionLifespan)
+	logHandler.ServiceLogger.Printf("[%v] Session Life=[%v]", strings.ToUpper(name), sessionLifespan)
 	count := 0
 
 	// Get all the sessions
@@ -60,14 +60,14 @@ func JobSessionExpiry() {
 
 	sessions, err := sessionStore.GetAll()
 	if err != nil {
-		logger.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(name), err.Error())
+		logHandler.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(name), err.Error())
 		return
 	}
 
 	noSessions := len(sessions)
-	logger.ServiceLogger.Printf("[%v] Sessions=[%v]", strings.ToUpper(name), noSessions)
+	logHandler.ServiceLogger.Printf("[%v] Sessions=[%v]", strings.ToUpper(name), noSessions)
 	if noSessions == 0 {
-		logger.ServiceLogger.Printf("[%v] No sessions to process", strings.ToUpper(name))
+		logHandler.ServiceLogger.Printf("[%v] No sessions to process", strings.ToUpper(name))
 		clock.Stop(0)
 		return
 	}
@@ -76,15 +76,15 @@ func JobSessionExpiry() {
 
 		if s.Expiry.Before(time.Now()) {
 			count++
-			logger.ServiceLogger.Printf("[%v] NOK (%v/%v) Session=[%v] EXPIRED=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
-			logger.SecurityLogger.Printf("[%v] NOK (%v/%v) Session=[%v] EXPIRED=[%v] User=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry, s.UserID)
+			logHandler.ServiceLogger.Printf("[%v] NOK (%v/%v) Session=[%v] EXPIRED=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
+			logHandler.SecurityLogger.Printf("[%v] NOK (%v/%v) Session=[%v] EXPIRED=[%v] User=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry, s.UserID)
 			err := s.Delete(context.TODO(), "Session Expired")
 			if err != nil {
-				logger.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(name), err.Error())
+				logHandler.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(name), err.Error())
 			}
 		} else {
-			logger.ServiceLogger.Printf("[%v]  OK (%v/%v) Session=[%v] Expires=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
-			logger.SecurityLogger.Printf("[%v]  OK (%v/%v) Session=[%v] Expires=[%v] User=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry, s.UserID)
+			logHandler.ServiceLogger.Printf("[%v]  OK (%v/%v) Session=[%v] Expires=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry)
+			logHandler.SecurityLogger.Printf("[%v]  OK (%v/%v) Session=[%v] Expires=[%v] User=[%v]", strings.ToUpper(name), x+1, noSessions, s.ID, s.Expiry, s.UserID)
 		}
 	}
 	clock.Stop(count)
