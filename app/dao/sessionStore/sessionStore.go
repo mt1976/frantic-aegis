@@ -14,6 +14,7 @@ import (
 	"github.com/mt1976/frantic-core/dao"
 	"github.com/mt1976/frantic-core/dao/actions"
 	"github.com/mt1976/frantic-core/dao/audit"
+	"github.com/mt1976/frantic-core/dao/database"
 	"github.com/mt1976/frantic-core/dao/lookup"
 	"github.com/mt1976/frantic-core/ioHelpers"
 	"github.com/mt1976/frantic-core/logHandler"
@@ -327,4 +328,12 @@ func GetLookup(field, value string) (lookup.Lookup, error) {
 
 func Drop() error {
 	return activeDB.Drop(Session_Store{})
+}
+
+func GetDB() func() (*database.DB, error) {
+	//logHandler.InfoLogger.Println("GETDB")
+	return func() (*database.DB, error) {
+		//logHandler.InfoLogger.Printf("GETDB2")
+		return database.Connect(), nil
+	}
 }
