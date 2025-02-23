@@ -19,9 +19,9 @@ type SessionExpiryJob struct {
 
 // AddFunction implements jobs.Job.
 func (job *SessionExpiryJob) AddDatabaseAccessFunctions(fn func() ([]*database.DB, error)) {
-	logHandler.ServiceLogger.Printf("[%v] [%v] Adding Function", domain, job.Name())
+	//	logHandler.ServiceLogger.Printf("[%v] [%v] Adding Function", domain, job.Name())
 	job.databaseAccessors = append(job.databaseAccessors, fn)
-	logHandler.ServiceLogger.Printf("[%v] [%v] Function Added - No Funcs=(%v)", domain, job.Name(), len(job.databaseAccessors))
+	// logHandler.ServiceLogger.Printf("[%v] [%v] Function Added - No Funcs=(%v)", domain, job.Name(), len(job.databaseAccessors))
 }
 
 // Description implements jobs.Job.
