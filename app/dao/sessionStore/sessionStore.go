@@ -114,6 +114,10 @@ func GetAllWhere(field string, value any) ([]Session_Store, error) {
 		return recordList, err
 	}
 
+	if err := dao.IsValidTypeForField(field, value, Session_Store{}); err != nil {
+		return recordList, err
+	}
+
 	recordList, err := GetAll()
 	if err != nil {
 		return []Session_Store{}, err
@@ -197,6 +201,12 @@ func DeleteBy(ctx context.Context, field string, value any, note string) error {
 	clock := timing.Start(domain, actions.DELETE.GetCode(), fmt.Sprintf("%v=%v", field, value))
 
 	if err := dao.IsValidFieldInStruct(field, Session_Store{}); err != nil {
+		logHandler.ErrorLogger.Print(commonErrors.WrapDAODeleteError(domain, field, value, err).Error())
+		clock.Stop(0)
+		return commonErrors.WrapDAODeleteError(domain, field, value, err)
+	}
+
+	if err := dao.IsValidTypeForField(field, value, Session_Store{}); err != nil {
 		logHandler.ErrorLogger.Print(commonErrors.WrapDAODeleteError(domain, field, value, err).Error())
 		clock.Stop(0)
 		return commonErrors.WrapDAODeleteError(domain, field, value, err)

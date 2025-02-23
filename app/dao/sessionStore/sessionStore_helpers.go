@@ -95,48 +95,20 @@ func ClearDown(ctx context.Context) error {
 	return nil
 }
 
-func GetByUserID(userID int) []Session_Store {
-	clock := timing.Start("Sessions", "GetByUserID", "")
-	var rtnList []Session_Store
-	// Get all status
-	activityList, err := GetAll()
+func GetAllByUserID(userID int) []Session_Store {
+
+	rtnList, err := GetAllWhere(FIELD_UserID, userID)
 	if err != nil {
 		logHandler.ErrorLogger.Printf("ERROR Getting all status: %v", err)
-		clock.Stop(0)
-		return rtnList
 	}
-
-	// range through status list, if status code is found and deletedby is empty then return error
-	for _, a := range activityList {
-		if a.UserID == userID {
-			rtnList = append(rtnList, a)
-		}
-	}
-
-	clock.Stop(len(rtnList))
 
 	return rtnList
 }
 
-func GetByUserCode(userCode string) []Session_Store {
-	clock := timing.Start("Sessions", "GetByUserID", "")
-	var rtnList []Session_Store
-	// Get all status
-	activityList, err := GetAll()
+func GetAllByUserCode(userCode string) []Session_Store {
+	rtnList, err := GetAllWhere(FIELD_UserCode, userCode)
 	if err != nil {
 		logHandler.ErrorLogger.Printf("ERROR Getting all status: %v", err)
-		clock.Stop(0)
-		return rtnList
 	}
-
-	// range through status list, if status code is found and deletedby is empty then return error
-	for _, a := range activityList {
-		if a.UserCode == userCode {
-			rtnList = append(rtnList, a)
-		}
-	}
-
-	clock.Stop(len(rtnList))
-
 	return rtnList
 }
