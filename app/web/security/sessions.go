@@ -8,7 +8,7 @@ import (
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
 	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
 	"github.com/mt1976/frantic-core/commonErrors"
-	logger "github.com/mt1976/frantic-core/logHandler"
+	"github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/timing"
 )
 
@@ -22,7 +22,7 @@ func New(ctx context.Context, userID int, userIDValidator func(int) (securityMod
 	// }
 	UserMessage, err := userIDValidator(userID)
 	if err != nil {
-		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
+		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		panic(err)
 	}
 
@@ -40,12 +40,12 @@ func New(ctx context.Context, userID int, userIDValidator func(int) (securityMod
 	//ctx = setSessionContextValues(ctx, UserMessage, SI.SessionID, SS)
 
 	if appModeDev {
-		logger.InfoLogger.Printf("SessionID=[%v]", SI.SessionID)
-		logger.InfoLogger.Printf("UserID=[%v]", SI.UserID)
-		logger.InfoLogger.Printf("UserCode=[%v]", SI.UserCode)
-		logger.InfoLogger.Printf("Token=[%+v]", SI.Token)
-		logger.InfoLogger.Printf("Life=[%v]", SI.Life)
-		logger.InfoLogger.Printf("SS=[%+v]", SS)
+		logHandler.InfoLogger.Printf("SessionID=[%v]", SI.SessionID)
+		logHandler.InfoLogger.Printf("UserID=[%v]", SI.UserID)
+		logHandler.InfoLogger.Printf("UserCode=[%v]", SI.UserCode)
+		logHandler.InfoLogger.Printf("Token=[%+v]", SI.Token)
+		logHandler.InfoLogger.Printf("Life=[%v]", SI.Life)
+		logHandler.InfoLogger.Printf("SS=[%+v]", SS)
 	}
 	clock.Stop(1)
 	return &SI
@@ -56,34 +56,34 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 	ctx := r.Context()
 	// Get the UserCode from the User Table, via the SessionID
 
-	logger.SecurityLogger.Printf("[%v] EstablishSessionContext: Session=[%v]", strings.ToUpper(domain), sessionID)
+	logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: Session=[%v]", strings.ToUpper(domain), sessionID)
 
 	token, err := sessionStore.GetBy(sessionStore.FIELD_SessionID, sessionID)
 	if err != nil {
-		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
+		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("Session Not Found")
 		Violation(w, r, msg.String())
 		return ctx
 	}
 
-	logger.SecurityLogger.Printf("[%v] EstablishSessionContext: UserID=[%v] (%v)", strings.ToUpper(domain), token.UserID, token.UserCode)
+	logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: UserID=[%v] (%v)", strings.ToUpper(domain), token.UserID, token.UserCode)
 	clock := timing.Start(domain, "userValidator", "")
 	UserMessage, err := userValidator(token.UserID)
 	clock.Stop(1)
 	if err == commonErrors.ErrorUserNotFound {
-		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
+		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("User Not Found")
 		Violation(w, r, msg.String())
 		return ctx
 	}
 	if err == commonErrors.ErrorUserNotActive {
-		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
+		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("User Not Active")
 		Violation(w, r, msg.String())
 		return ctx
 	}
 	if err != nil {
-		logger.ErrorLogger.Printf("Error=[%v]", err.Error())
+		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("User Invalid")
 		Violation(w, r, msg.String())
 		return ctx
@@ -92,11 +92,11 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 	ctx = setSessionContextValues(ctx, UserMessage, sessionID, token)
 
 	if appModeDev {
-		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
-		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
-		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserIDKey, UserMessage.ID)
-		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
-		logger.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, token.Expiry)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserIDKey, UserMessage.ID)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, token.Expiry)
 	}
 
 	return ctx

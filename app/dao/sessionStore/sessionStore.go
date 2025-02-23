@@ -57,6 +57,10 @@ func GetBy(field string, value any) (Session_Store, error) {
 		return Session_Store{}, err
 	}
 
+	if err := dao.IsValidTypeForField(field, value, Session_Store{}); err != nil {
+		return Session_Store{}, err
+	}
+
 	record := Session_Store{}
 	logHandler.DatabaseLogger.Printf("Get %v where (%v=%v)", domain, field, value)
 

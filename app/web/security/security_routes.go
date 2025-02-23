@@ -8,7 +8,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
-	logger "github.com/mt1976/frantic-core/logHandler"
+	"github.com/mt1976/frantic-core/logHandler"
 )
 
 func AnnounceInsecureRoute(route string) string {
@@ -18,7 +18,7 @@ func AnnounceInsecureRoute(route string) string {
 	if len(prefix) < padTo {
 		prefix = prefix + strings.Repeat(" ", padTo-len(prefix))
 	}
-	logger.ApiLogger.Printf("%s %v://%v:%v%v", prefix, serverProtocol, serverHost, serverPort, route)
+	logHandler.ApiLogger.Printf("%s %v://%v:%v%v", prefix, serverProtocol, serverHost, serverPort, route)
 	return route
 }
 
@@ -43,7 +43,7 @@ func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.Us
 		password := r.FormValue("password")
 
 		if userName == "" || password == "" {
-			logger.SecurityLogger.Printf("[%v] Unauthorized Access Attempt - %v", strings.ToUpper(domain), http.StatusText(http.StatusUnauthorized))
+			logHandler.SecurityLogger.Printf("[%v] Unauthorized Access Attempt - %v", strings.ToUpper(domain), http.StatusText(http.StatusUnauthorized))
 			msg, _ := trnsl8.Get("Username and/or Password not provided")
 			Violation(w, r, msg.String())
 		}
@@ -52,7 +52,7 @@ func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.Us
 		//user, err := userStore.GetByUserName(userName)
 		user, err := userNameValidator(userName)
 		if err != nil {
-			logger.SecurityLogger.Printf("[%v] User not found - %v", strings.ToUpper(domain), userName)
+			logHandler.SecurityLogger.Printf("[%v] User not found - %v", strings.ToUpper(domain), userName)
 			msg, _ := trnsl8.Get("User not found")
 			Violation(w, r, msg.String())
 		}
@@ -60,7 +60,7 @@ func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.Us
 		//err = auth.ValidateUserIDAndPassword(user.ID, password)
 		err = authValidator(user.ID, password)
 		if err != nil {
-			logger.SecurityLogger.Printf("[%v] Password mismatch - %v", strings.ToUpper(domain), userName)
+			logHandler.SecurityLogger.Printf("[%v] Password mismatch - %v", strings.ToUpper(domain), userName)
 			msg, _ := trnsl8.Get("Password mismatch")
 			Violation(w, r, msg.String())
 		} else {
@@ -95,15 +95,15 @@ func Violation(w http.ResponseWriter, r *http.Request, msg string) {
 
 	oldTableName := domain
 	domain = "!!!!!EXCEPTION!!!!!"
-	logger.SecurityLogger.Printf("[%v] Unauthorized Access Attempt - %v", strings.ToUpper(domain), http.StatusText(http.StatusUnauthorized))
-	logger.SecurityLogger.Printf("[%v] Reason : [%v]", strings.ToUpper(domain), msg)
-	logger.SecurityLogger.Printf("[%v] From : [%v]", strings.ToUpper(domain), r.RemoteAddr)
-	logger.SecurityLogger.Printf("[%v] Request : [%v]", strings.ToUpper(domain), r.RequestURI)
-	logger.SecurityLogger.Printf("[%v] Method : [%v]", strings.ToUpper(domain), r.Method)
-	logger.SecurityLogger.Printf("[%v] User Agent : [%v]", strings.ToUpper(domain), r.UserAgent())
-	logger.SecurityLogger.Printf("[%v] Referer : [%v]", strings.ToUpper(domain), r.Referer())
-	logger.SecurityLogger.Printf("[%v] Host : [%v]", strings.ToUpper(domain), r.Host)
-	logger.SecurityLogger.Printf("[%v] Remote Address : [%v]", strings.ToUpper(domain), r.RemoteAddr)
+	logHandler.SecurityLogger.Printf("[%v] Unauthorized Access Attempt - %v", strings.ToUpper(domain), http.StatusText(http.StatusUnauthorized))
+	logHandler.SecurityLogger.Printf("[%v] Reason : [%v]", strings.ToUpper(domain), msg)
+	logHandler.SecurityLogger.Printf("[%v] From : [%v]", strings.ToUpper(domain), r.RemoteAddr)
+	logHandler.SecurityLogger.Printf("[%v] Request : [%v]", strings.ToUpper(domain), r.RequestURI)
+	logHandler.SecurityLogger.Printf("[%v] Method : [%v]", strings.ToUpper(domain), r.Method)
+	logHandler.SecurityLogger.Printf("[%v] User Agent : [%v]", strings.ToUpper(domain), r.UserAgent())
+	logHandler.SecurityLogger.Printf("[%v] Referer : [%v]", strings.ToUpper(domain), r.Referer())
+	logHandler.SecurityLogger.Printf("[%v] Host : [%v]", strings.ToUpper(domain), r.Host)
+	logHandler.SecurityLogger.Printf("[%v] Remote Address : [%v]", strings.ToUpper(domain), r.RemoteAddr)
 	domain = oldTableName
 
 	if msg == "" {
@@ -133,7 +133,7 @@ func Violation(w http.ResponseWriter, r *http.Request, msg string) {
 
 	////spew.Dump(uri)
 
-	logger.SecurityLogger.Printf("[%v] Redirecting to [%v]", domain, uri.String())
+	logHandler.SecurityLogger.Printf("[%v] Redirecting to [%v]", domain, uri.String())
 
 	http.Redirect(w, r, uri.String(), http.StatusFound)
 
@@ -146,24 +146,24 @@ func Violation(w http.ResponseWriter, r *http.Request, msg string) {
 func Validate(h httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-		logger.SecurityLogger.Printf("[%v] Session Key Name: [%v]", strings.ToUpper(domain), sessionKey)
+		logHandler.SecurityLogger.Printf("[%v] Session Key Name: [%v]", strings.ToUpper(domain), sessionKey)
 
 		sessionID := extractSessionID(ps, sessionKey, r)
 
-		logger.SecurityLogger.Printf("[%v] Session Key FOUND!: [%v]", strings.ToUpper(domain), sessionID)
+		logHandler.SecurityLogger.Printf("[%v] Session Key FOUND!: [%v]", strings.ToUpper(domain), sessionID)
 
 		if sessionID != "" {
 			// Delegate request to the given handle
-			logger.SecurityLogger.Printf("[%v] Session Validated - [%v] - [%v]", strings.ToUpper(domain), r.RequestURI, http.StatusText(http.StatusAccepted))
+			logHandler.SecurityLogger.Printf("[%v] Session Validated - [%v] - [%v]", strings.ToUpper(domain), r.RequestURI, http.StatusText(http.StatusAccepted))
 			r.URL.Query().Add(sessionKey, sessionID)
-			logger.SecurityLogger.Printf("url adding sessionKey: %v sessionID:%v\n", sessionKey, sessionID)
+			logHandler.SecurityLogger.Printf("url adding sessionKey: %v sessionID:%v\n", sessionKey, sessionID)
 			r.URL.RawQuery = r.URL.Query().Encode()
-			logger.SecurityLogger.Printf("ps=%+v", ps)
-			logger.SecurityLogger.Printf("r=%+v", r.URL.Query().Encode())
+			logHandler.SecurityLogger.Printf("ps=%+v", ps)
+			logHandler.SecurityLogger.Printf("r=%+v", r.URL.Query().Encode())
 			h(w, r, ps)
 		} else {
 			// Error Response
-			logger.SecurityLogger.Printf("[%v] Session Violation - [%v] - [%v]", strings.ToUpper(domain), r.RequestURI, http.StatusText(http.StatusUnauthorized))
+			logHandler.SecurityLogger.Printf("[%v] Session Violation - [%v] - [%v]", strings.ToUpper(domain), r.RequestURI, http.StatusText(http.StatusUnauthorized))
 			msg2, _ := trnsl8.Get("Session Key not found")
 			msg := http.StatusText(http.StatusUnauthorized) + " - " + msg2.String()
 			Violation(w, r, msg)

@@ -3,7 +3,7 @@ package security
 import (
 	"github.com/mt1976/frantic-core/commonConfig"
 	"github.com/mt1976/frantic-core/dao/database"
-	logger "github.com/mt1976/frantic-core/logHandler"
+	"github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/timing"
 	trnsl8r "github.com/mt1976/trnsl8r_connect"
 )
@@ -32,7 +32,7 @@ var trnsl8 trnsl8r.Request
 
 func init() {
 	clock := timing.Start("security", "Initialise", "")
-	logger.TranslationLogger.Println("Initialised")
+	logHandler.TranslationLogger.Println("Initialised")
 	cfg = commonConfig.Get()
 	trnsServerProtocol = cfg.GetTranslationServerProtocol()
 	trnsServerHost = cfg.GetTranslationServerHost()
@@ -48,10 +48,10 @@ func init() {
 
 	appModeDev = cfg.IsApplicationMode(commonConfig.MODE_DEVELOPMENT)
 	if appModeDev {
-		logger.SecurityLogger.Printf("sessionKey: %v\n", sessionKey)
-		logger.SecurityLogger.Printf("sessionUserIDKey: %v\n", sessionUserIDKey)
-		logger.SecurityLogger.Printf("sessionUserCodeKey: %v\n", sessionUserCodeKey)
-		logger.SecurityLogger.Printf("sessionTokenKey: %v\n", sessionTokenKey)
+		logHandler.SecurityLogger.Printf("sessionKey: %v\n", sessionKey)
+		logHandler.SecurityLogger.Printf("sessionUserIDKey: %v\n", sessionUserIDKey)
+		logHandler.SecurityLogger.Printf("sessionUserCodeKey: %v\n", sessionUserCodeKey)
+		logHandler.SecurityLogger.Printf("sessionTokenKey: %v\n", sessionTokenKey)
 	}
 
 	msgTypeKey = cfg.GetMessageTypeKey()
@@ -70,7 +70,7 @@ func init() {
 	trnsServerPort := cfg.GetTranslationServerPort()
 	trnsLocale := cfg.GetTranslationLocale()
 	err := error(nil)
-	trnsl8, err = trnsl8r.NewRequest().FromOrigin(appName).WithHost(trnsServerHost).WithPort(trnsServerPort).WithProtocol(trnsServerProtocol).WithLogger(logger.TranslationLogger).WithFilter(trnsl8r.LOCALE, trnsLocale)
+	trnsl8, err = trnsl8r.NewRequest().FromOrigin(appName).WithHost(trnsServerHost).WithPort(trnsServerPort).WithProtocol(trnsServerProtocol).WithLogger(logHandler.TranslationLogger).WithFilter(trnsl8r.LOCALE, trnsLocale)
 	if err != nil {
 		panic(err)
 	}

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	logger "github.com/mt1976/frantic-core/logHandler"
+	"github.com/mt1976/frantic-core/logHandler"
 )
 
 var domain = "security"
@@ -15,7 +15,7 @@ func ExtractSessionTokenFromReferer(r *http.Request) string {
 	referer := r.Referer()
 	refURI, err := url.Parse(referer)
 	if err != nil {
-		logger.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(domain), err.Error())
+		logHandler.ErrorLogger.Printf("[%v] Error=[%v]", strings.ToUpper(domain), err.Error())
 		return ""
 	}
 	//fmt.Printf("key: %v\n", key)
@@ -34,33 +34,33 @@ func ExtractSessionTokenFromReferer(r *http.Request) string {
 func extractSessionID(ps httprouter.Params, sessionKeyName string, r *http.Request) string {
 	sessionID := ps.ByName(sessionKeyName)
 	if sessionID == "" {
-		logger.SecurityLogger.Printf("[%v] No Session Key Found, checking headers [%v]", strings.ToUpper(domain), r.Header)
+		logHandler.SecurityLogger.Printf("[%v] No Session Key Found, checking headers [%v]", strings.ToUpper(domain), r.Header)
 		sessionID = r.Header.Get(sessionKeyName)
 	}
 	if sessionID == "" {
-		logger.SecurityLogger.Printf("[%v] No Session Key Found, checking params [%v]", strings.ToUpper(domain), r.URL.Query())
+		logHandler.SecurityLogger.Printf("[%v] No Session Key Found, checking params [%v]", strings.ToUpper(domain), r.URL.Query())
 		sessionID = r.URL.Query().Get(sessionKeyName)
 	}
 	if sessionID == "" {
-		logger.SecurityLogger.Printf("[%v] No Session Key Found, checking form [%v]", strings.ToUpper(domain), r.Form)
+		logHandler.SecurityLogger.Printf("[%v] No Session Key Found, checking form [%v]", strings.ToUpper(domain), r.Form)
 		sessionID = r.FormValue(sessionKeyName)
 	}
 	if sessionID == "" {
-		logger.SecurityLogger.Printf("[%v] No Session Key Found, checking context [%v]", strings.ToUpper(domain), r.Context())
+		logHandler.SecurityLogger.Printf("[%v] No Session Key Found, checking context [%v]", strings.ToUpper(domain), r.Context())
 		ID := r.Context().Value(sessionKeyName)
 		if ID != nil {
 			sessionID = ID.(string)
 		}
 	}
 	if sessionID == "" {
-		logger.SecurityLogger.Printf("[%v] No Session Key Found, checking cookies [%v]", strings.ToUpper(domain), r.Cookies())
+		logHandler.SecurityLogger.Printf("[%v] No Session Key Found, checking cookies [%v]", strings.ToUpper(domain), r.Cookies())
 		cookie, err := r.Cookie(sessionKeyName)
 		if err == nil {
 			sessionID = cookie.Value
 		}
 	}
 	if sessionID == "" {
-		logger.SecurityLogger.Printf("[%v] No Session Key Found, checking referer [%v]", strings.ToUpper(domain), r.Referer())
+		logHandler.SecurityLogger.Printf("[%v] No Session Key Found, checking referer [%v]", strings.ToUpper(domain), r.Referer())
 		sessionID = ExtractSessionTokenFromReferer(r)
 	}
 	return sessionID

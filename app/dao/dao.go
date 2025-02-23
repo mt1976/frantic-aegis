@@ -7,7 +7,7 @@ import (
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
 	"github.com/mt1976/frantic-core/commonConfig"
 	"github.com/mt1976/frantic-core/dao/actions"
-	logger "github.com/mt1976/frantic-core/logHandler"
+	"github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/timing"
 )
 
@@ -17,11 +17,11 @@ var DB *storm.DB
 
 func Initialise(cfg *commonConfig.Settings) error {
 	clock := timing.Start(name, actions.INITIALISE.GetCode(), name)
-	logger.InfoLogger.Printf("Initialising %v...", name)
+	logHandler.InfoLogger.Printf("Initialising %v...", name)
 
 	sessionStore.Initialise(context.TODO())
 
-	logger.InfoLogger.Printf("Initialised %v", name)
+	logHandler.InfoLogger.Printf("Initialised %v", name)
 	clock.Stop(1)
 	return nil
 }
