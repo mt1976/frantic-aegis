@@ -29,6 +29,7 @@ func New(userID int, userCode string) (Session_Store, error) {
 	record.Raw = sessionID
 	record.UserID = userID
 	record.UserCode = userCode
+	record.SessionID = sessionID
 
 	record.Expiry = time.Now().Add(time.Minute * time.Duration(sessionExpiry))
 
