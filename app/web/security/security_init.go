@@ -12,7 +12,7 @@ var serverPort string
 var serverHost string
 var serverProtocol string
 
-var sessionUserIDKey string
+var sessionUserKeyKey string
 var sessionKey string
 var sessionUserCodeKey string
 var sessionTokenKey string
@@ -42,14 +42,14 @@ func init() {
 
 	// dao.Initialise()
 	sessionKey = cfg.GetSecuritySessionKeyName()
-	sessionUserIDKey = cfg.GetSecuritySessionUserIDKey()
+	sessionUserKeyKey = cfg.GetSecuritySessionUserIDKey()
 	sessionUserCodeKey = cfg.GetSecuritySessionUserCodeKey()
 	sessionTokenKey = cfg.GetSecuritySessionTokenKey()
 
 	appModeDev = cfg.IsApplicationMode(commonConfig.MODE_DEVELOPMENT)
 	if appModeDev {
 		logHandler.SecurityLogger.Printf("sessionKey: %v\n", sessionKey)
-		logHandler.SecurityLogger.Printf("sessionUserIDKey: %v\n", sessionUserIDKey)
+		logHandler.SecurityLogger.Printf("sessionUserIDKey: %v\n", sessionUserKeyKey)
 		logHandler.SecurityLogger.Printf("sessionUserCodeKey: %v\n", sessionUserCodeKey)
 		logHandler.SecurityLogger.Printf("sessionTokenKey: %v\n", sessionTokenKey)
 	}

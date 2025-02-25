@@ -9,7 +9,7 @@ import (
 type Session struct {
 	SessionID string
 	Life      time.Duration
-	UserID    int
+	UserKey   string
 	UserCode  string
 	Token     sessionStore.Session_Store
 }

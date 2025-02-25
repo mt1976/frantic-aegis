@@ -14,12 +14,12 @@ import (
 type Session_Store struct {
 	ID        int         `storm:"id,increment=100000"` // primary key with auto increment
 	Key       string      `storm:"unique"`              // key, not used
-	SessionID string      `storm:"index"`               // session key
 	Raw       string      `storm:"index"`               // raw ID before encoding
-	UserID    int         `storm:"index"`               // user key
+	SessionID string      `storm:"index"`               // session key
+	UserKey   string      `storm:"index"`               // user key
 	UserCode  string      `storm:"index"`               // user code
 	Expiry    time.Time   // expiry time
-	Audit     audit.Audit // audit data
+	Audit     audit.Audit `csv:"-"` // audit data
 }
 
 // Define the field set as names

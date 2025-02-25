@@ -1,6 +1,6 @@
 package securityModel
 
 type UserMessage struct {
-	ID   int
+	Key  string
 	Code string
 }

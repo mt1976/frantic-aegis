@@ -12,7 +12,7 @@ import (
 	"github.com/mt1976/frantic-core/timing"
 )
 
-func New(ctx context.Context, userID int, userIDValidator func(int) (securityModel.UserMessage, error)) *securityModel.Session {
+func New(ctx context.Context, userKey string, userIDValidator func(string) (securityModel.UserMessage, error)) *securityModel.Session {
 	clock := timing.Start(domain, "New", "")
 	SI := securityModel.Session{}
 
@@ -20,28 +20,28 @@ func New(ctx context.Context, userID int, userIDValidator func(int) (securityMod
 	// if err != nil {
 	// 	panic(err)
 	// }
-	UserMessage, err := userIDValidator(userID)
+	UserMessage, err := userIDValidator(userKey)
 	if err != nil {
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		panic(err)
 	}
 
-	SS, err := sessionStore.New(UserMessage.ID, UserMessage.Code)
+	SS, err := sessionStore.New(ctx, UserMessage.Key, UserMessage.Code)
 	if err != nil {
 		panic(err)
 	}
 
 	SI.Token = SS
-	SI.UserID = UserMessage.ID
+	SI.UserKey = UserMessage.Key
+	SI.UserCode = UserMessage.Code
 	SI.SessionID = SS.SessionID
 	SI.Life = 0
-	SI.UserCode = UserMessage.Code
 
 	//ctx = setSessionContextValues(ctx, UserMessage, SI.SessionID, SS)
 
 	if appModeDev {
 		logHandler.InfoLogger.Printf("SessionID=[%v]", SI.SessionID)
-		logHandler.InfoLogger.Printf("UserID=[%v]", SI.UserID)
+		logHandler.InfoLogger.Printf("UserKey=[%v]", SI.UserKey)
 		logHandler.InfoLogger.Printf("UserCode=[%v]", SI.UserCode)
 		logHandler.InfoLogger.Printf("Token=[%+v]", SI.Token)
 		logHandler.InfoLogger.Printf("Life=[%v]", SI.Life)
@@ -51,7 +51,7 @@ func New(ctx context.Context, userID int, userIDValidator func(int) (securityMod
 	return &SI
 }
 
-func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string, userValidator func(int) (securityModel.UserMessage, error)) context.Context {
+func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string, userValidator func(string) (securityModel.UserMessage, error)) context.Context {
 
 	ctx := r.Context()
 	// Get the UserCode from the User Table, via the SessionID
@@ -66,9 +66,9 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 		return ctx
 	}
 
-	logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: UserID=[%v] (%v)", strings.ToUpper(domain), token.UserID, token.UserCode)
+	logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: UserKey=[%v] (%v)", strings.ToUpper(domain), token.UserKey, token.UserCode)
 	clock := timing.Start(domain, "userValidator", "")
-	UserMessage, err := userValidator(token.UserID)
+	UserMessage, err := userValidator(token.UserKey)
 	clock.Stop(1)
 	if err == commonErrors.ErrorUserNotFound {
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
@@ -93,9 +93,8 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 
 	if appModeDev {
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserKeyKey, UserMessage.Key)
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserIDKey, UserMessage.ID)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, token.Expiry)
 	}
 
@@ -105,7 +104,7 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 func setSessionContextValues(ctx context.Context, user securityModel.UserMessage, sessionID string, token sessionStore.Session_Store) context.Context {
 	ctx = context.WithValue(ctx, sessionUserCodeKey, user.Code)
 	ctx = context.WithValue(ctx, sessionKey, sessionID)
-	ctx = context.WithValue(ctx, sessionUserIDKey, user.ID)
+	ctx = context.WithValue(ctx, sessionUserKeyKey, user.Key)
 	ctx = context.WithValue(ctx, sessionUserCodeKey, user.Code)
 	ctx = context.WithValue(ctx, sessionExpiryKey, token.Expiry)
 	return ctx

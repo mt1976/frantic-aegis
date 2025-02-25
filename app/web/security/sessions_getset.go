@@ -10,7 +10,7 @@ import (
 func Get(ctx context.Context) *securityModel.Session {
 	si := securityModel.Session{}
 	si.SessionID = ctx.Value(sessionKey).(string)
-	si.UserID = ctx.Value(sessionUserIDKey).(int)
+	si.UserKey = ctx.Value(sessionUserKeyKey).(string)
 	si.Token = ctx.Value(sessionTokenKey).(sessionStore.Session_Store)
 	si.UserCode = ctx.Value(sessionUserCodeKey).(string)
 	return &si
@@ -21,7 +21,7 @@ func Current_UserCode(ctx context.Context) string {
 }
 
 func Current_UserID(ctx context.Context) int {
-	return ctx.Value(sessionUserIDKey).(int)
+	return ctx.Value(sessionUserKeyKey).(int)
 }
 
 func Current_SessionID(ctx context.Context) string {

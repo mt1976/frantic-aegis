@@ -14,12 +14,12 @@ import (
 	"github.com/mt1976/frantic-core/timing"
 )
 
-func New(userID int, userCode string) (Session_Store, error) {
+func New(ctx context.Context, userKey, userCode string) (Session_Store, error) {
 
 	dao.CheckDAOReadyState(domain, audit.CREATE, initialised) // Check the DAO has been initialised, Mandatory.
 
 	//logHandler.InfoLogger.Printf("New %v (%v=%v)", domain, FIELD_ID, field1)
-	clock := timing.Start(domain, actions.CREATE.GetCode(), fmt.Sprintf("%v", userID))
+	clock := timing.Start(domain, actions.CREATE.GetCode(), fmt.Sprintf("%v", userKey))
 
 	sessionID := idHelpers.GetUUID()
 
@@ -27,14 +27,14 @@ func New(userID int, userCode string) (Session_Store, error) {
 	record := Session_Store{}
 	record.Key = idHelpers.Encode(sessionID)
 	record.Raw = sessionID
-	record.UserID = userID
+	record.UserKey = userKey
 	record.UserCode = userCode
 	record.SessionID = sessionID
 
 	record.Expiry = time.Now().Add(time.Minute * time.Duration(sessionExpiry))
 
 	// Record the create action in the audit data
-	auditErr := record.Audit.Action(context.TODO(), audit.CREATE.WithMessage(fmt.Sprintf("New %v created %v", domain, userID)))
+	auditErr := record.Audit.Action(ctx, audit.CREATE.WithMessage(fmt.Sprintf("New %v created %v", domain, userKey)))
 	if auditErr != nil {
 		// Log and panic if there is an error creating the status instance
 		logHandler.ErrorLogger.Panic(commonErrors.WrapDAOUpdateAuditError(domain, record.ID, auditErr))

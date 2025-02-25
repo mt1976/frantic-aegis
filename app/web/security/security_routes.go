@@ -28,7 +28,7 @@ func AnnounceSecureRoute(route string) string {
 	return AnnounceInsecureRoute(route)
 }
 
-func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.UserMessage, error), userNameValidator func(string) (securityModel.UserMessage, error), authValidator func(int, string) error) httprouter.Handle {
+func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (securityModel.UserMessage, error), userNameValidator func(string) (securityModel.UserMessage, error), authValidator func(string, string) error) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 		// r.Header.Del("Authorization")
@@ -58,7 +58,7 @@ func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.Us
 		}
 
 		//err = auth.ValidateUserIDAndPassword(user.ID, password)
-		err = authValidator(user.ID, password)
+		err = authValidator(user.Key, password)
 		if err != nil {
 			logHandler.SecurityLogger.Printf("[%v] Password mismatch - %v", strings.ToUpper(domain), userName)
 			msg, _ := trnsl8.Get("Password mismatch")
@@ -71,7 +71,7 @@ func EntryPoint(h httprouter.Handle, userIDValidator func(int) (securityModel.Us
 		if securityCheckOK {
 			trace(r)
 			// Delegate request to the given handle
-			si := New(r.Context(), user.ID, userIDValidator)
+			si := New(r.Context(), user.Key, userKeyValidator)
 			//r.URL.Query().Add(sessionKey, si.SessionID)
 			r.Header.Add(sessionKey, si.SessionID)
 			newURI := "/home?" + sessionKey + "=" + si.SessionID
