@@ -32,20 +32,20 @@ func New(ctx context.Context, userKey string, userIDValidator func(string) (secu
 		panic(err)
 	}
 
-	SI.Token = SS
+	SI.SessionToken = SS
 	SI.UserKey = UserMessage.Key
 	SI.UserCode = UserMessage.Code
 	SI.SessionID = SS.SessionID
-	SI.Life = 0
+	SI.Expiry = SS.Expiry
 
 	//ctx = setSessionContextValues(ctx, UserMessage, SI.SessionID, SS)
 
 	if appModeDev {
 		logHandler.InfoLogger.Printf("SessionID=[%v]", SI.SessionID)
+		logHandler.InfoLogger.Printf("SessionToken=[%+v]", SI.SessionToken)
 		logHandler.InfoLogger.Printf("UserKey=[%v]", SI.UserKey)
 		logHandler.InfoLogger.Printf("UserCode=[%v]", SI.UserCode)
-		logHandler.InfoLogger.Printf("Token=[%+v]", SI.Token)
-		logHandler.InfoLogger.Printf("Life=[%v]", SI.Life)
+		logHandler.InfoLogger.Printf("Life=[%v]", SI.Expiry)
 		logHandler.InfoLogger.Printf("SS=[%+v]", SS)
 	}
 	clock.Stop(1)
@@ -112,14 +112,5 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, sessionToken.Expiry)
 	}
 
-	return ctx
-}
-
-func setSessionContextValues(ctx context.Context, user securityModel.UserMessage, sessionID string, token sessionStore.Session_Store) context.Context {
-	ctx = context.WithValue(ctx, sessionUserCodeKey, user.Code)
-	ctx = context.WithValue(ctx, sessionKey, sessionID)
-	ctx = context.WithValue(ctx, sessionUserKeyKey, user.Key)
-	ctx = context.WithValue(ctx, sessionUserCodeKey, user.Code)
-	ctx = context.WithValue(ctx, sessionExpiryKey, token.Expiry)
 	return ctx
 }

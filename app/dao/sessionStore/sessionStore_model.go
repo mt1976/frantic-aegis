@@ -7,7 +7,7 @@ package sessionStore
 import (
 	"time"
 
-	audit "github.com/mt1976/frantic-core/dao/audit"
+	"github.com/mt1976/frantic-core/dao/audit"
 )
 
 // Session_Store represents a Session_Store entity.

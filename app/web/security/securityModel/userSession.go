@@ -7,9 +7,9 @@ import (
 )
 
 type Session struct {
-	SessionID string
-	Life      time.Duration
-	UserKey   string
-	UserCode  string
-	Token     sessionStore.Session_Store
+	SessionID    string
+	Expiry       time.Time
+	UserKey      string
+	UserCode     string
+	SessionToken sessionStore.Session_Store
 }

@@ -24,9 +24,7 @@ var cfg *commonConfig.Settings
 func Initialise(ctx context.Context) {
 	timing := timing.Start(domain, actions.INITIALISE.GetCode(), "Initialise")
 	cfg = commonConfig.Get()
-	// For a specific database connection, use NamedConnect, otherwise use Connect
-	activeDB = database.ConnectToNamedDB("Session")
-	// activeDB = database.Connect()
+
 	initialised = true
 
 	sessionExpiry = cfg.GetSecuritySession_ExpiryPeriod()
@@ -36,6 +34,7 @@ func Initialise(ctx context.Context) {
 	}
 	// For a specific database connection, use NamedConnect, otherwise use Connect
 	activeDB = database.ConnectToNamedDB("aegis")
+	// activeDB = database.Connect()
 
 	timing.Stop(1)
 	logHandler.EventLogger.Printf("Initialised %v", domain)
