@@ -36,7 +36,7 @@ func New(ctx context.Context, userKey, userCode string) (Session_Store, error) {
 	record.Raw = sessionID
 	record.UserKey = userKey
 	record.UserCode = userCode
-	record.SessionID = sessionID
+	record.SessionID = record.Key
 
 	record.Expiry = time.Now().Add(time.Minute * time.Duration(sessionExpiry))
 

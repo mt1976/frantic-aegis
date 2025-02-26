@@ -63,6 +63,8 @@ func extractSessionID(ps httprouter.Params, sessionKeyName string, r *http.Reque
 		logHandler.SecurityLogger.Printf("[%v] No Session Key Found, checking referer [%v]", strings.ToUpper(domain), r.Referer())
 		sessionID = ExtractSessionTokenFromReferer(r)
 	}
+	// remove the last char if it is a ?
+	sessionID = strings.TrimSuffix(sessionID, "?")
 	return sessionID
 }
 
