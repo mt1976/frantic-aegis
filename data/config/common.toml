@@ -12,7 +12,7 @@ license= "MIT"
 locale = "en_GB"
 
 [Database]
-version = 2
+version = 1
 type = "storm"
 host = ""
 port = 0
@@ -20,11 +20,11 @@ name = ""
 user = ""
 pass = ""
 path = ""
-poolsize = 10
+poolsize = 0
 timeout = 0
 
 [Server]
-host = "n/a"
+host = "127.0.0.1"
 port = 5052
 protocol = "http"
 environment = "development"
@@ -35,14 +35,46 @@ host = "192.168.1.145"
 port = 5050
 protocol = "http"
 
+[Translation.Permitted]
+[[Translation.Permitted.Origins]]
+name = "demon_pear"
+[[Translation.Permitted.Origins]]
+name = "trnsl8r_connect"
+[[Translation.Permitted.Origins]]
+name = "cosmic-orange"
+[[Translation.Permitted.Origins]]
+name = "frantic-aegis"
+[[Translation.Permitted.Origins]]
+name = "frantic-core"
+[[Translation.Permitted.Origins]]
+name = "frantic-template"
+
+
+[[Translation.Permitted.Locales]]
+key = "jp_JP"
+name = "Japanese (Japan)"
+[[Translation.Permitted.Locales]]
+key = "fr_FR"
+name = "French (France)"
+[[Translation.Permitted.Locales]]
+key = "de_DE"
+name = "German (Germany)"
+[[Translation.Permitted.Locales]]
+key = "pl_PL"
+name = "Polish (Poland)"
+[[Translation.Permitted.Locales]]
+key = "es_ES"
+name = "Spanish (Spain)"
+
 [Assets]
 logo = "co-logo.png"
 favicon = "co-favicon.ico"
 
 [Dates]
-dateTimeFormat = "2006-01-02 15:04:05"
-dateFormat = "02/01/2006"
-timeFormat = "15:04:05"
+[Dates.Formats]
+dateTime = "2006-01-02 15:04:05"
+date = "02/01/2006"
+time = "15:04:05"
 backup = "060102"
 backupFolder = "060102150405"
 human = "02 Jan 2006"
@@ -115,27 +147,29 @@ ip = "pdp1173.com"
 zone = "external"
 
 [Security]
-sessionKey = "xs-id"
-sessionUserIDKey = "xs-u-id"
-sessionUserCodeKey = "xs-u-code"
-sessionTokenKey = "xs-token"
-sessionExpiry = 3600
-sessionExpiryKey = "xs-expiry"
-serviceUserName = "service"
-serviceUserCode = "sys"
+[Security.Sessions]
+expiryPeriod = 3600
+
+[Security.Sessions.Keys]
+session = "xs-id"
+userKey = "xs-u-id"
+userCode = "xs-u-code"
+token = "xs-token"
+expiryPeriod = "xs-expiry"
+
+[Security.Service]
+userUID = "sys"
+userName = "service"
 
 [Message]
-typeKey = "xm-type"
-titleKey = "xm-title"
-contentKey = "xm-content"
-actionKey = "xm-act"
+[Message.Keys]
+type = "xm-type"
+title = "xm-title"
+content = "xm-content"
+action = "xm-act"
 
 [Display]
 delim = "⋮"
-
-[Pushover]
-UserKey = "uyosdopsu9wxxo7b264bmnnhbfz8nj"
-APIToken = "autd5u19nczbs5v6zq2i7afpzjpe2v"
 
 [Status]
 unknown = "UNKN"
@@ -144,36 +178,15 @@ offline = "OFLN"
 error = "ERRO"
 warning = "WARN"
 
-[[Origins]]
-name = "demon_pear"
-[[Origins]]
-name = "trnsl8r_connect"
-[[Origins]]
-name = "cosmic-orange"
-[[Origins]]
-name = "frantic-aegis"
-[[Origins]]
-name = "frantic-core"
 
 
+[Communications]
 
-[[Locales]]
-key = "jp_JP"
-name = "Japanese (Japan)"
-[[Locales]]
-key = "fr_FR"
-name = "French (France)"
-[[Locales]]
-key = "de_DE"
-name = "German (Germany)"
-[[Locales]]
-key = "pl_PL"
-name = "Polish (Poland)"
-[[Locales]]
-key = "es_ES"
-name = "Spanish (Spain)"
+[Communications.Pushover]
+UserKey = "uyosdopsu9wxxo7b264bmnnhbfz8nj"
+APIToken = "autd5u19nczbs5v6zq2i7afpzjpe2v"
 
-[Email]
+[Communications.Email]
 host = "smtp.gmail.com"
 port = 587
 user = "user@test.com"
@@ -182,6 +195,7 @@ from = "user2@test.com"
 footer = "This is a footer"
 admin = "babs@babs.com"
 
+[Logging]
 [Logging.Disable]
 general = "false"
 timing = "true"
@@ -194,6 +208,9 @@ event = "false"
 security = "false"
 database = "true"
 api = "false"
+import = "false"
+export = "false"
+comms = "false"
 all = ""
 
 [Logging.Defaults]

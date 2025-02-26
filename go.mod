@@ -4,13 +4,13 @@ go 1.24
 
 require (
 	github.com/asdine/storm/v3 v3.2.1
-	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/mt1976/frantic-core v1.2.44
+	github.com/mt1976/frantic-core v1.2.47
 )
 
 require (
 	github.com/galsondor/go-ascii v0.0.0-20151210013816-e2eb5175fb10 // indirect
+	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/jsuar/go-cron-descriptor v0.1.0 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect

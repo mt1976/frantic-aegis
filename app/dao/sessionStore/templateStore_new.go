@@ -1,5 +1,12 @@
 package sessionStore
 
+// Data Access Object Session
+// Version: 0.2.0
+// Updated on: 2021-09-10
+
+//TODO: Update the New function to implement the creation of a new domain entity
+//TODO: Create any new functions required to support the domain entity
+
 import (
 	"context"
 	"fmt"
@@ -33,15 +40,8 @@ func New(ctx context.Context, userKey, userCode string) (Session_Store, error) {
 
 	record.Expiry = time.Now().Add(time.Minute * time.Duration(sessionExpiry))
 
-	// Record the create action in the audit data
-	auditErr := record.Audit.Action(ctx, audit.CREATE.WithMessage(fmt.Sprintf("New %v created %v", domain, userKey)))
-	if auditErr != nil {
-		// Log and panic if there is an error creating the status instance
-		logHandler.ErrorLogger.Panic(commonErrors.WrapDAOUpdateAuditError(domain, record.ID, auditErr))
-	}
-
 	// Save the status instance to the database
-	writeErr := activeDB.Create(&record)
+	writeErr := record.insertOrUpdate(ctx, fmt.Sprintf("New %v created %v", domain, userKey), actions.CREATE.GetCode(), audit.CREATE, "Create")
 	if writeErr != nil {
 		// Log and panic if there is an error creating the status instance
 		logHandler.ErrorLogger.Panic(commonErrors.WrapDAOCreateError(domain, record.ID, writeErr))

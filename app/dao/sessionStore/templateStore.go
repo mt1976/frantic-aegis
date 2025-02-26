@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/mt1976/frantic-core/commonErrors"
 	"github.com/mt1976/frantic-core/dao"
@@ -16,7 +15,9 @@ import (
 	"github.com/mt1976/frantic-core/dao/audit"
 	"github.com/mt1976/frantic-core/dao/database"
 	"github.com/mt1976/frantic-core/dao/lookup"
+	"github.com/mt1976/frantic-core/importExportHelper"
 	"github.com/mt1976/frantic-core/ioHelpers"
+	"github.com/mt1976/frantic-core/jobs"
 	"github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/paths"
 	"github.com/mt1976/frantic-core/timing"
@@ -44,7 +45,7 @@ func GetById(id any) (Session_Store, error) {
 }
 
 func GetByKey(key any) (Session_Store, error) {
-	return GetBy(FIELD_SessionID, key)
+	return GetBy(FIELD_Key, key)
 }
 
 func GetBy(field string, value any) (Session_Store, error) {
@@ -52,6 +53,12 @@ func GetBy(field string, value any) (Session_Store, error) {
 	clock := timing.Start(domain, actions.GET.GetCode(), fmt.Sprintf("%v=%v", field, value))
 
 	dao.CheckDAOReadyState(domain, audit.GET, initialised) // Check the DAO has been initialised, Mandatory.
+
+	if field == FIELD_ID && reflect.TypeOf(value).Name() != "int" {
+		msg := "invalid data type. Expected type of %v is int"
+		logHandler.ErrorLogger.Printf(msg, value)
+		return Session_Store{}, commonErrors.WrapDAOReadError(domain, field, value, fmt.Errorf(msg, value))
+	}
 
 	if err := dao.IsValidFieldInStruct(field, Session_Store{}); err != nil {
 		return Session_Store{}, err
@@ -69,7 +76,7 @@ func GetBy(field string, value any) (Session_Store, error) {
 		return Session_Store{}, commonErrors.WrapRecordNotFoundError(domain, field, fmt.Sprintf("%v", value))
 	}
 
-	if err := record.PostGet(); err != nil {
+	if err := record.postGet(); err != nil {
 		clock.Stop(0)
 		return Session_Store{}, commonErrors.WrapDAOReadError(domain, field, value, err)
 	}
@@ -91,7 +98,7 @@ func GetAll() ([]Session_Store, error) {
 		return []Session_Store{}, commonErrors.WrapNotFoundError(domain, errG)
 	}
 
-	if _, errPost := PostGet(&recordList); errPost != nil {
+	if _, errPost := postGetList(&recordList); errPost != nil {
 		clock.Stop(0)
 		return nil, errPost
 	}
@@ -131,7 +138,7 @@ func GetAllWhere(field string, value any) ([]Session_Store, error) {
 		}
 	}
 
-	if _, errPost := PostGet(&resultList); errPost != nil {
+	if _, errPost := postGetList(&resultList); errPost != nil {
 		clock.Stop(0)
 		return nil, errPost
 	}
@@ -140,59 +147,12 @@ func GetAllWhere(field string, value any) ([]Session_Store, error) {
 
 	return resultList, nil
 }
-
-func (record *Session_Store) Update(ctx context.Context, note string) error {
-
-	dao.CheckDAOReadyState(domain, audit.UPDATE, initialised) // Check the DAO has been initialised, Mandatory.
-
-	clock := timing.Start(domain, actions.UPDATE.GetCode(), fmt.Sprintf("%v", record.ID))
-
-	if err := record.Validate(); err != nil {
-		clock.Stop(0)
-		return err
-	}
-
-	if calculationError := record.calculate(); calculationError != nil {
-		rtnErr := commonErrors.WrapDAOCaclulationError(domain, calculationError)
-		logHandler.ErrorLogger.Print(rtnErr.Error())
-		clock.Stop(0)
-		return rtnErr
-	}
-
-	if _, validationError := record.prepare(); validationError != nil {
-		valErr := commonErrors.WrapDAOValidationError(domain, validationError)
-		logHandler.ErrorLogger.Print(valErr.Error())
-		clock.Stop(0)
-		return valErr
-	}
-
-	auditErr := record.Audit.Action(ctx, audit.UPDATE.WithMessage(note))
-	if auditErr != nil {
-		audErr := commonErrors.WrapDAOUpdateAuditError(domain, record.ID, auditErr)
-		logHandler.ErrorLogger.Print(audErr.Error())
-		clock.Stop(0)
-		return audErr
-	}
-
-	if err := activeDB.Update(record); err != nil {
-		updErr := commonErrors.WrapDAOUpdateError(domain, err)
-		logHandler.ErrorLogger.Panic(updErr.Error(), err)
-		clock.Stop(0)
-		return updErr
-	}
-
-	//logHandler.AuditLogger.Printf("[%v] [%v] ID=[%v] Notes[%v]", audit.UPDATE, strings.ToUpper(domain), record.ID, note)
-	clock.Stop(1)
-
-	return nil
-}
-
 func Delete(ctx context.Context, id int, note string) error {
 	return DeleteBy(ctx, FIELD_ID, id, note)
 }
 
 func DeleteByKey(ctx context.Context, key string, note string) error {
-	return DeleteBy(ctx, FIELD_SessionID, key, note)
+	return DeleteBy(ctx, FIELD_Key, key, note)
 }
 func DeleteBy(ctx context.Context, field string, value any, note string) error {
 
@@ -209,7 +169,7 @@ func DeleteBy(ctx context.Context, field string, value any, note string) error {
 	if err := dao.IsValidTypeForField(field, value, Session_Store{}); err != nil {
 		logHandler.ErrorLogger.Print(commonErrors.WrapDAODeleteError(domain, field, value, err).Error())
 		clock.Stop(0)
-		return commonErrors.WrapDAODeleteError(domain, field, value, err)
+		return err
 	}
 
 	record, err := GetBy(field, value)
@@ -229,7 +189,14 @@ func DeleteBy(ctx context.Context, field string, value any, note string) error {
 		return audErr
 	}
 
-	record.Export(audit.DELETE.Description())
+	preDeleteErr := record.preDeleteProcessing()
+	if preDeleteErr != nil {
+		logHandler.ErrorLogger.Print(commonErrors.WrapDAODeleteError(domain, field, value, preDeleteErr).Error())
+		clock.Stop(0)
+		return preDeleteErr
+	}
+
+	record.ExportRecordAsJSON(audit.DELETE.Description())
 
 	if err := activeDB.Delete(&record); err != nil {
 		delErr := commonErrors.WrapDAODeleteError(domain, field, value, err)
@@ -238,63 +205,32 @@ func DeleteBy(ctx context.Context, field string, value any, note string) error {
 		return delErr
 	}
 
-	//logHandler.AuditLogger.Printf("%v %v (%v=%v) %v", audit.DELETE.Description(), domain, field, value, note)
-
 	clock.Stop(1)
 
 	return nil
 }
 
 func (record *Session_Store) Spew() {
-	logHandler.InfoLogger.Printf(" [%v] Record=[%+v]", strings.ToUpper(domain), record)
+	logHandler.InfoLogger.Printf("[%v] Record=[%+v]", domain, record)
 }
 
 func (record *Session_Store) Validate() error {
-	return nil
+	return record.validationProcessing()
 }
 
-func PostGet(recordList *[]Session_Store) ([]Session_Store, error) {
-	clock := timing.Start(domain, actions.PROCESS.GetCode(), "POSTGET")
-	returnList := []Session_Store{}
-	for _, record := range *recordList {
-		if err := record.PostGet(); err != nil {
-			return nil, err
-		}
-		returnList = append(returnList, record)
-	}
-	clock.Stop(len(returnList))
-	return returnList, nil
+func (record *Session_Store) Update(ctx context.Context, note string) error {
+	return record.insertOrUpdate(ctx, note, actions.UPDATE.GetCode(), audit.UPDATE, "Update")
 }
 
-func (s *Session_Store) PostGet() error {
-	clock := timing.Start(domain, actions.PROCESS.GetCode(), fmt.Sprintf("%v", s.ID))
-	clock.Stop(1)
-	return nil
+func (record *Session_Store) Create(ctx context.Context, note string) error {
+	return record.insertOrUpdate(ctx, note, actions.CREATE.GetCode(), audit.CREATE, "Create")
 }
 
-func Export(message string) {
-
-	dao.CheckDAOReadyState(domain, audit.EXPORT, initialised) // Check the DAO has been initialised, Mandatory.
-
-	clock := timing.Start(domain, actions.EXPORT.GetCode(), "ALL")
-	recordList, _ := GetAll()
-	if len(recordList) == 0 {
-		logHandler.WarningLogger.Printf("[%v] %v data not found", strings.ToUpper(domain), domain)
-		clock.Stop(0)
-		return
-	}
-	SEP := "!"
-	for _, record := range recordList {
-		msg := fmt.Sprintf("%v%v%v", audit.EXPORT.Description(), SEP, message)
-		if message == "" {
-			msg = fmt.Sprintf("%v%v", audit.EXPORT.Description(), SEP)
-		}
-		record.Export(msg)
-	}
-	clock.Stop(len(recordList))
+func (record *Session_Store) Clone(ctx context.Context) (Session_Store, error) {
+	return cloneProcessing(ctx, *record)
 }
 
-func (record *Session_Store) Export(name string) {
+func (record *Session_Store) ExportRecordAsJSON(name string) {
 
 	ID := reflect.ValueOf(*record).FieldByName(FIELD_ID)
 
@@ -306,7 +242,7 @@ func (record *Session_Store) Export(name string) {
 }
 
 func GetDefaultLookup() (lookup.Lookup, error) {
-	return GetLookup(FIELD_SessionID, FIELD_Raw)
+	return GetLookup(FIELD_Key, FIELD_Raw)
 }
 
 func GetLookup(field, value string) (lookup.Lookup, error) {
@@ -344,10 +280,107 @@ func Drop() error {
 	return activeDB.Drop(Session_Store{})
 }
 
-// FetchDatabaseInstances returns the database connection
-func FetchDatabaseInstances() func() ([]*database.DB, error) {
-	//logHandler.InfoLogger.Println("GETDB")
+// GetDatabaseConnections returns a function that fetches the current database instances.
+//
+// This function is used to retrieve the active database instances being used by the application.
+// It returns a function that, when called, returns a slice of pointers to `database.DB` and an error.
+//
+// Returns:
+//
+//	func() ([]*database.DB, error): A function that returns a slice of pointers to `database.DB` and an error.
+func GetDatabaseConnections() func() ([]*database.DB, error) {
 	return func() ([]*database.DB, error) {
 		return []*database.DB{activeDB}, nil
 	}
+}
+
+func ClearDown(ctx context.Context) error {
+	dao.CheckDAOReadyState(domain, audit.PROCESS, initialised) // Check the DAO has been initialised, Mandatory.
+
+	clock := timing.Start(domain, actions.CLEAR.GetCode(), "INITIALISE")
+
+	// Delete all active session recordList
+	recordList, err := GetAll()
+	if err != nil {
+		logHandler.ErrorLogger.Print(commonErrors.WrapDAOInitialisationError(domain, err).Error())
+		clock.Stop(0)
+		return commonErrors.WrapDAOInitialisationError(domain, err)
+	}
+
+	noRecords := len(recordList)
+	count := 0
+
+	for thisRecord, record := range recordList {
+		logHandler.InfoLogger.Printf("Deleting %v (%v/%v) %v", domain, thisRecord, noRecords, record.Key)
+		delErr := Delete(ctx, record.ID, fmt.Sprintf("Clearing %v %v @ initialisation ", domain, record.ID))
+		if delErr != nil {
+			logHandler.ErrorLogger.Print(commonErrors.WrapDAOInitialisationError(domain, delErr).Error())
+			continue
+		}
+		count++
+	}
+
+	clock.Stop(count)
+	logHandler.EventLogger.Printf("Cleared down %v", domain)
+	return nil
+}
+
+func ExportRecordsAsJSON(message string) {
+
+	dao.CheckDAOReadyState(domain, audit.EXPORT, initialised) // Check the DAO has been initialised, Mandatory.
+
+	clock := timing.Start(domain, actions.EXPORT.GetCode(), "ALL")
+	recordList, _ := GetAll()
+	if len(recordList) == 0 {
+		logHandler.WarningLogger.Printf("[%v] %v data not found", domain, domain)
+		clock.Stop(0)
+		return
+	}
+	SEP := "!"
+	for _, record := range recordList {
+		msg := fmt.Sprintf("%v%v%v", audit.EXPORT.Description(), SEP, message)
+		if message == "" {
+			msg = fmt.Sprintf("%v%v", audit.EXPORT.Description(), SEP)
+		}
+		record.ExportRecordAsJSON(msg)
+	}
+	clock.Stop(len(recordList))
+}
+
+func ExportRecordsAsCSV() error {
+
+	exportListData, err := GetAll()
+	if err != nil {
+		logHandler.ExportLogger.Panicf("error Getting all %v's: %v", domain, err.Error())
+	}
+
+	return importExportHelper.ExportCSV(domain, exportListData)
+}
+
+func ImportRecordsFromCSV() error {
+	return importExportHelper.ImportCSV(domain, &Session_Store{}, importProcessor)
+}
+
+// Worker is a job that is scheduled to run at a predefined interval
+func Worker(j jobs.Job, db *database.DB) {
+	clock := timing.Start(jobs.CodedName(j), actions.INITIALISE.GetCode(), j.Description())
+	oldDB := activeDB
+	dbSwitched := false
+	// Overide the default database connection if one is passed
+
+	if db != nil {
+		if activeDB.Name != db.Name {
+			logHandler.EventLogger.Printf("Switching to %v.db", db.Name)
+			activeDB = db
+			dbSwitched = true
+		}
+	}
+
+	jobProcessor(j)
+
+	if dbSwitched {
+		logHandler.EventLogger.Printf("Switching back to %v.db from %v.db", oldDB.Name, activeDB.Name)
+		activeDB = oldDB
+	}
+	clock.Stop(1)
 }

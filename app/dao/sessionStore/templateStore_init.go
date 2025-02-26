@@ -4,6 +4,8 @@ package sessionStore
 // Version: 0.2.0
 // Updated on: 2021-09-10
 
+//TODO: Add any initialisation code to the Initialise function
+
 import (
 	"context"
 
@@ -17,20 +19,24 @@ import (
 var sessionExpiry = 20 // default to 20 mins
 var activeDB *database.DB
 var initialised bool = false // default to false
+var cfg *commonConfig.Settings
 
 func Initialise(ctx context.Context) {
-	logHandler.EventLogger.Printf("Initialising %v", domain)
 	timing := timing.Start(domain, actions.INITIALISE.GetCode(), "Initialise")
-	cfg := commonConfig.Get()
-	sessionExpiry = cfg.Security.SessionExpiry
+	cfg = commonConfig.Get()
+	// For a specific database connection, use NamedConnect, otherwise use Connect
+	activeDB = database.ConnectToNamedDB("Session")
+	// activeDB = database.Connect()
+	initialised = true
+
+	sessionExpiry = cfg.GetSecuritySession_ExpiryPeriod()
 	if sessionExpiry == 0 {
 		logHandler.WarningLogger.Printf("[%v] NO SESSION TIMEOUT, Session Life=[%v]", domain, sessionExpiry)
 		return
 	}
 	// For a specific database connection, use NamedConnect, otherwise use Connect
 	activeDB = database.ConnectToNamedDB("aegis")
-	// activeDB = database.Connect()
-	initialised = true
+
 	timing.Stop(1)
 	logHandler.EventLogger.Printf("Initialised %v", domain)
 }

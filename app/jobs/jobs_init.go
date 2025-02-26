@@ -9,15 +9,16 @@ import (
 var cfg *commonConfig.Settings
 var appName string
 var translationServiceRequest trnsl8r.Request
-var domain = "Security"
+
+//var domain = "Security"
 
 func init() {
 	cfg = commonConfig.Get()
-	appName = cfg.GetApplicationName()
-	trnsServerProtocol := cfg.GetTranslationServerProtocol()
-	trnsServerHost := cfg.GetTranslationServerHost()
-	trnsServerPort := cfg.GetTranslationServerPort()
-	trnsLocale := cfg.GetTranslationLocale()
+	appName = cfg.GetApplication_Name()
+	trnsServerProtocol := cfg.GetTranslationServer_Protocol()
+	trnsServerHost := cfg.GetTranslationServer_Host()
+	trnsServerPort := cfg.GetTranslationServer_Port()
+	trnsLocale := cfg.GetApplication_Locale()
 	err := error(nil)
 	translationServiceRequest, err = trnsl8r.NewRequest().FromOrigin(appName).WithHost(trnsServerHost).WithPort(trnsServerPort).WithProtocol(trnsServerProtocol).WithLogger(logHandler.TranslationLogger).WithFilter(trnsl8r.LOCALE, trnsLocale)
 	if err != nil {
