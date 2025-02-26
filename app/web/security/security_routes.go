@@ -155,8 +155,10 @@ func Validate(h httprouter.Handle) httprouter.Handle {
 		if sessionID != "" {
 			// Delegate request to the given handle
 			logHandler.SecurityLogger.Printf("[%v] Session Validated - [%v] - [%v]", strings.ToUpper(domain), r.RequestURI, http.StatusText(http.StatusAccepted))
-			r.URL.Query().Add(sessionKey, sessionID)
-			logHandler.SecurityLogger.Printf("url adding sessionKey: %v sessionID:%v\n", sessionKey, sessionID)
+			query := r.URL.Query()
+			query.Add(sessionKey, sessionID)
+			r.URL.RawQuery = query.Encode()
+			logHandler.SecurityLogger.Printf("url adding [%v=%v]\n", sessionKey, sessionID)
 			r.URL.RawQuery = r.URL.Query().Encode()
 			logHandler.SecurityLogger.Printf("ps=%+v", ps)
 			logHandler.SecurityLogger.Printf("r=%+v", r.URL.Query().Encode())

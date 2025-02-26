@@ -31,6 +31,8 @@ var msgContentKey string
 var msgActionKey string
 var trnsl8 trnsl8r.Request
 
+var SESSION_KEY string
+
 func init() {
 	clock := timing.Start(domain, actions.INITIALISE.GetCode(), "")
 
@@ -48,6 +50,7 @@ func init() {
 	sessionUserCodeKey = cfg.GetSecuritySessionKey_UserCode()
 	sessionTokenKey = cfg.GetSecuritySessionKey_Token()
 	sessionExpiryKey = cfg.GetSecuritySessionKey_ExpiryPeriod()
+	SESSION_KEY = sessionKey
 
 	appModeDev = cfg.IsApplicationMode(commonConfig.MODE_DEVELOPMENT)
 	if appModeDev {
