@@ -32,7 +32,7 @@ func New(ctx context.Context, userKey string, userIDValidator func(string) (secu
 		panic(err)
 	}
 
-	SI.SessionToken = SS
+	//SI.SessionToken = SS
 	SI.UserKey = UserMessage.Key
 	SI.UserCode = UserMessage.Code
 	SI.SessionID = SS.SessionID
@@ -42,7 +42,7 @@ func New(ctx context.Context, userKey string, userIDValidator func(string) (secu
 
 	if appModeDev {
 		logHandler.InfoLogger.Printf("SessionID=[%v]", SI.SessionID)
-		logHandler.InfoLogger.Printf("SessionToken=[%+v]", SI.SessionToken)
+		//logHandler.InfoLogger.Printf("SessionToken=[%+v]", SI.SessionToken)
 		logHandler.InfoLogger.Printf("UserKey=[%v]", SI.UserKey)
 		logHandler.InfoLogger.Printf("UserCode=[%v]", SI.UserCode)
 		logHandler.InfoLogger.Printf("Life=[%v]", SI.Expiry)
@@ -110,6 +110,7 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserKeyKey, UserMessage.Key)
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, sessionToken.Expiry)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionTokenKey, sessionToken)
 	}
 
 	return ctx
