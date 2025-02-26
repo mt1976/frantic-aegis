@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
 	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
 	"github.com/mt1976/frantic-core/commonErrors"
@@ -51,14 +52,27 @@ func New(ctx context.Context, userKey string, userIDValidator func(string) (secu
 	return &SI
 }
 
-func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string, userValidator func(string) (securityModel.UserMessage, error)) context.Context {
+func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Params, userValidator func(string) (securityModel.UserMessage, error)) context.Context {
+
+	//ps httprouter.Params
+	sessionID := ps.ByName(cfg.GetSecuritySessionKey_Session())
+	if sessionID == "" {
+		logHandler.SecurityLogger.Printf("[%v] No Session Key Found, checking headers [%v]", strings.ToUpper(domain), r.Header)
+	}
+	sessionID = extractSessionID(ps, cfg.GetSecuritySessionKey_Session(), r)
+	if sessionID == "" {
+		logHandler.SecurityLogger.Printf("[%v] Unable to find session id to set context", strings.ToUpper(domain))
+		msg, _ := trnsl8.Get("Session Error")
+		Violation(w, r, msg.String())
+		return r.Context()
+	}
 
 	ctx := r.Context()
 	// Get the UserCode from the User Table, via the SessionID
 
-	logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: Session=[%v]", strings.ToUpper(domain), sessionID)
+	logHandler.SecurityLogger.Printf("[%v] GetSessionContext: Session=[%v]", strings.ToUpper(domain), sessionID)
 
-	token, err := sessionStore.GetBy(sessionStore.FIELD_SessionID, sessionID)
+	sessionToken, err := sessionStore.GetBy(sessionStore.FIELD_SessionID, sessionID)
 	if err != nil {
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("Session Not Found")
@@ -66,9 +80,9 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 		return ctx
 	}
 
-	logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: UserKey=[%v] (%v)", strings.ToUpper(domain), token.UserKey, token.UserCode)
+	logHandler.SecurityLogger.Printf("[%v] GetSessionContext: UserKey=[%v] (%v)", strings.ToUpper(domain), sessionToken.UserKey, sessionToken.UserCode)
 	clock := timing.Start(domain, "userValidator", "")
-	UserMessage, err := userValidator(token.UserKey)
+	UserMessage, err := userValidator(sessionToken.UserKey)
 	clock.Stop(1)
 	if err == commonErrors.ErrorUserNotFound {
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
@@ -89,13 +103,13 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, sessionID string,
 		return ctx
 	}
 
-	ctx = setSessionContextValues(ctx, UserMessage, sessionID, token)
+	ctx = setSessionContextValues(ctx, UserMessage, sessionID, sessionToken)
 
 	if appModeDev {
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserKeyKey, UserMessage.Key)
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, token.Expiry)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, sessionToken.Expiry)
 	}
 
 	return ctx
