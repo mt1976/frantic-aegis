@@ -57,9 +57,9 @@ func (record *Session_Store) insertOrUpdate(ctx context.Context, note, activity 
 	}
 	var actionError error
 	if isCreateOperation {
-		actionError = activeDB.Create(&record)
+		actionError = activeDB.Create(record)
 	} else {
-		actionError = activeDB.Update(&record)
+		actionError = activeDB.Update(record)
 	}
 	if actionError != nil {
 		updErr := commonErrors.WrapDAOUpdateError(domain, actionError)
