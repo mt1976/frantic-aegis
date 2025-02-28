@@ -33,9 +33,7 @@ var trnsl8 trnsl8r.Request
 
 var SESSION_KEY string
 
-type aegisContentWrangler struct {
-	Content string
-}
+var domain = "security"
 
 func init() {
 	clock := timing.Start(domain, actions.INITIALISE.GetCode(), "")

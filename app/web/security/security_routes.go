@@ -69,13 +69,16 @@ func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (securityMode
 
 		// Check this is a valid password
 		if securityCheckOK {
-			trace(r)
 			// Delegate request to the given handle
 			si := New(r.Context(), user.Key, userKeyValidator)
-			//r.URL.Query().Add(sessionKey, si.SessionID)
-			r.Header.Add(sessionKey, si.SessionID)
-			newURI := "/home?" + sessionKey + "=" + si.SessionID
-			http.Redirect(w, r, newURI, http.StatusFound)
+			r.Header.Add(SESSION_KEY, si.SessionID)
+
+			newURL, _ := r.URL.Parse("/home")
+			newPath := newURL.Query()
+			newPath.Add(SESSION_KEY, si.SessionID)
+			newURL.RawQuery = newPath.Encode()
+
+			http.Redirect(w, r, newURL.String(), http.StatusFound)
 		} else {
 			// Request Basic Authentication otherwise
 			msg := http.StatusText(http.StatusUnauthorized)

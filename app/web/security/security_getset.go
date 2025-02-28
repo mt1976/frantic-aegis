@@ -9,16 +9,6 @@ import (
 	"github.com/mt1976/frantic-core/contextHandler"
 )
 
-// func get(ctx context.Context) *securityModel.Session {
-// 	si := securityModel.Session{}
-// 	si.SessionID = Current_SessionID(ctx)
-// 	si.SessionToken = Current_SessionToken(ctx)
-// 	si.UserKey = Current_UserKey(ctx)
-// 	si.UserCode = Current_UserCode(ctx)
-// 	si.Expiry = Current_SessionExpiry(ctx)
-// 	return &si
-// }
-
 func Current_UserCode(ctx context.Context) string {
 	return contextHandler.GetUserCode(ctx)
 }
