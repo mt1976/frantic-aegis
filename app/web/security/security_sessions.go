@@ -8,15 +8,15 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
-	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
 	"github.com/mt1976/frantic-core/commonErrors"
 	"github.com/mt1976/frantic-core/logHandler"
+	"github.com/mt1976/frantic-core/messageHelpers"
 	"github.com/mt1976/frantic-core/timing"
 )
 
-func New(ctx context.Context, userKey string, userIDValidator func(string) (securityModel.UserMessage, error)) *securityModel.Session {
+func New(ctx context.Context, userKey string, userIDValidator func(string) (messageHelpers.UserMessage, error)) *messageHelpers.SessionMessage {
 	clock := timing.Start(domain, "New", "")
-	SI := securityModel.Session{}
+	SI := messageHelpers.SessionMessage{}
 
 	// U, err := userStore.Get(userID)
 	// if err != nil {
@@ -53,7 +53,7 @@ func New(ctx context.Context, userKey string, userIDValidator func(string) (secu
 	return &SI
 }
 
-func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Params, userValidator func(string) (securityModel.UserMessage, error)) context.Context {
+func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Params, userValidator func(string) (messageHelpers.UserMessage, error)) context.Context {
 
 	//ps httprouter.Params
 	sessionID := ps.ByName(cfg.GetSecuritySessionKey_Session())

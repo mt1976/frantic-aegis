@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
-	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
 	"github.com/mt1976/frantic-core/contextHandler"
+	"github.com/mt1976/frantic-core/messageHelpers"
 )
 
 func Current_UserCode(ctx context.Context) string {
@@ -30,7 +30,7 @@ func Current_SessionExpiry(ctx context.Context) time.Time {
 	return contextHandler.GetSessionExpiry(ctx)
 }
 
-func setSessionContextValues(ctx context.Context, user securityModel.UserMessage, sessionID string, session sessionStore.Session_Store) context.Context {
+func setSessionContextValues(ctx context.Context, user messageHelpers.UserMessage, sessionID string, session sessionStore.Session_Store) context.Context {
 	ctx = contextHandler.SetSessionID(ctx, sessionID)
 	ctx = contextHandler.SetSessionToken(ctx, session)
 	ctx = contextHandler.SetUserKey(ctx, user.Key)

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/mt1976/frantic-aegis/app/web/security/securityModel"
 	"github.com/mt1976/frantic-core/logHandler"
+	"github.com/mt1976/frantic-core/messageHelpers"
 )
 
 func AnnounceInsecureRoute(route string) string {
@@ -28,7 +28,7 @@ func AnnounceSecureRoute(route string) string {
 	return AnnounceInsecureRoute(route)
 }
 
-func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (securityModel.UserMessage, error), userNameValidator func(string) (securityModel.UserMessage, error), authValidator func(string, string) error) httprouter.Handle {
+func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (messageHelpers.UserMessage, error), userNameValidator func(string) (messageHelpers.UserMessage, error), authValidator func(string, string) error) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 		// r.Header.Del("Authorization")
