@@ -20,7 +20,7 @@ type Session_Store struct {
 	UserKey   string      `storm:"index"`               // user key
 	UserCode  string      `storm:"index"`               // user code
 	Expiry    time.Time   // expiry time
-
+	Locale    string      // locale
 }
 
 // Define the field set as names
@@ -33,6 +33,7 @@ var (
 	FIELD_UserCode  = "UserCode"
 	FIELD_Expiry    = "Expiry"
 	FIELD_Audit     = "Audit"
+	FIELD_Locale    = "Locale"
 )
 
 var domain = "Session"

@@ -156,6 +156,9 @@ userKey = "xs-u-id"
 userCode = "xs-u-code"
 token = "xs-token"
 expiryPeriod = "xs-expiry"
+locale = "xs-locale"
+theme = "xs-theme"
+timezone = "xs-timezone"
 
 [Security.Service]
 userUID = "sys"

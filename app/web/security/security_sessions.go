@@ -38,6 +38,7 @@ func New(ctx context.Context, userKey string, userIDValidator func(string) (mess
 	SI.UserCode = UserMessage.Code
 	SI.SessionID = SS.SessionID
 	SI.Expiry = SS.Expiry
+	SI.User.Locale = UserMessage.Locale
 
 	//ctx = setSessionContextValues(ctx, UserMessage, SI.SessionID, SS)
 
@@ -48,6 +49,11 @@ func New(ctx context.Context, userKey string, userIDValidator func(string) (mess
 		logHandler.InfoLogger.Printf("UserCode=[%v]", SI.UserCode)
 		logHandler.InfoLogger.Printf("Life=[%v]", SI.Expiry)
 		logHandler.InfoLogger.Printf("SS=[%+v]", SS)
+		logHandler.InfoLogger.Printf("UserMessage=[%+v]", UserMessage)
+		logHandler.InfoLogger.Printf("SessionMessage=[%+v]", SI)
+		logHandler.InfoLogger.Printf("Locale=[%v]", SI.Locale)
+		logHandler.InfoLogger.Printf("Theme=[%v]", SI.Spare1)
+		logHandler.InfoLogger.Printf("Timezone=[%v]", SI.Spare2)
 	}
 	clock.Stop(1)
 	return &SI
@@ -112,6 +118,9 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, sessionToken.Expiry)
 		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionTokenKey, sessionToken)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionLocaleKey, UserMessage.Locale)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionThemeKey, UserMessage.Spare1)
+		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionTimezoneKey, UserMessage.Spare2)
 	}
 
 	return ctx

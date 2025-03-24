@@ -10,32 +10,39 @@ import (
 )
 
 func Current_UserCode(ctx context.Context) string {
-	return contextHandler.GetUserCode(ctx)
+	return contextHandler.GetSession_UserCode(ctx)
 }
 
 func Current_UserKey(ctx context.Context) string {
-	return contextHandler.GetUserKey(ctx)
+	return contextHandler.GetSession_UserKey(ctx)
+}
+
+func Current_Locale(ctx context.Context) string {
+	return contextHandler.GetSession_Locale(ctx)
 }
 
 func Current_SessionID(ctx context.Context) string {
-	return contextHandler.GetSessionID(ctx)
+	return contextHandler.GetSession_ID(ctx)
 }
 
 func Current_SessionToken(ctx context.Context) sessionStore.Session_Store {
-	return contextHandler.GetSessionToken(ctx).(sessionStore.Session_Store)
+	return contextHandler.GetSession_Token(ctx).(sessionStore.Session_Store)
 	// return ctx.Value(cfg.GetSecuritySessionKey_Token()).(sessionStore.Session_Store)
 }
 
 func Current_SessionExpiry(ctx context.Context) time.Time {
-	return contextHandler.GetSessionExpiry(ctx)
+	return contextHandler.GetSession_Expiry(ctx)
 }
 
 func setSessionContextValues(ctx context.Context, user messageHelpers.UserMessage, sessionID string, session sessionStore.Session_Store) context.Context {
-	ctx = contextHandler.SetSessionID(ctx, sessionID)
-	ctx = contextHandler.SetSessionToken(ctx, session)
-	ctx = contextHandler.SetUserKey(ctx, user.Key)
-	ctx = contextHandler.SetUserCode(ctx, user.Code)
-	ctx = contextHandler.SetSessionExpiry(ctx, session.Expiry)
+	ctx = contextHandler.SetSession_ID(ctx, sessionID)
+	ctx = contextHandler.SetSession_Token(ctx, session)
+	ctx = contextHandler.SetSession_UserKey(ctx, user.Key)
+	ctx = contextHandler.SetSession_UserCode(ctx, user.Code)
+	ctx = contextHandler.SetSession_Expiry(ctx, session.Expiry)
+	ctx = contextHandler.SetSession_Locale(ctx, user.Locale)
+	ctx = contextHandler.SetSession_Theme(ctx, "")
+	ctx = contextHandler.SetSession_Timezone(ctx, "")
 	return ctx
 	// ctx = context.WithValue(ctx, cfg.GetSecuritySessionKey_Session(), sessionID)
 	// ctx = context.WithValue(ctx, cfg.GetSecuritySessionKey_Token(), session)

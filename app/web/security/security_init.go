@@ -18,6 +18,9 @@ var sessionKey string
 var sessionUserCodeKey string
 var sessionTokenKey string
 var sessionExpiryKey string
+var sessionLocaleKey string
+var sessionThemeKey string
+var sessionTimezoneKey string
 var appModeDev = false
 var trnsServerHost string
 var trnsServerPort int
@@ -52,6 +55,10 @@ func init() {
 	sessionUserCodeKey = cfg.GetSecuritySessionKey_UserCode()
 	sessionTokenKey = cfg.GetSecuritySessionKey_Token()
 	sessionExpiryKey = cfg.GetSecuritySessionKey_ExpiryPeriod()
+	sessionLocaleKey = cfg.GetSecuritySessionKey_Locale()
+	sessionThemeKey = cfg.GetSecuritySessionKey_Theme()
+	sessionTimezoneKey = cfg.GetSecuritySessionKey_Timezone()
+
 	SESSION_KEY = sessionKey
 
 	appModeDev = cfg.IsApplicationMode(commonConfig.MODE_DEVELOPMENT)
@@ -61,6 +68,9 @@ func init() {
 		logHandler.SecurityLogger.Printf("sessionUserCodeKey: %v\n", sessionUserCodeKey)
 		logHandler.SecurityLogger.Printf("sessionTokenKey: %v\n", sessionTokenKey)
 		logHandler.SecurityLogger.Printf("sessionExpiryKey: %v\n", sessionExpiryKey)
+		logHandler.SecurityLogger.Printf("sessionLocaleKey: %v\n", sessionLocaleKey)
+		logHandler.SecurityLogger.Printf("sessionThemeKey: %v\n", sessionThemeKey)
+		logHandler.SecurityLogger.Printf("sessionTimezoneKey: %v\n", sessionTimezoneKey)
 	}
 
 	msgTypeKey = cfg.GetMessageKey_Type()
