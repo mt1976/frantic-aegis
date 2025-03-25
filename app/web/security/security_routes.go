@@ -161,10 +161,10 @@ func Validate(h httprouter.Handle) httprouter.Handle {
 			query := r.URL.Query()
 			query.Add(sessionKey, sessionID)
 			r.URL.RawQuery = query.Encode()
-			logHandler.SecurityLogger.Printf("url adding [%v=%v]\n", sessionKey, sessionID)
+			//	logHandler.SecurityLogger.Printf("url adding [%v=%v]\n", sessionKey, sessionID)
 			r.URL.RawQuery = r.URL.Query().Encode()
-			logHandler.SecurityLogger.Printf("ps=%+v", ps)
-			logHandler.SecurityLogger.Printf("r=%+v", r.URL.Query().Encode())
+			//	logHandler.SecurityLogger.Printf("ps=%+v", ps)
+			//	logHandler.SecurityLogger.Printf("r=%+v", r.URL.Query().Encode())
 			h(w, r, ps)
 		} else {
 			// Error Response

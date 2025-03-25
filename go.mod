@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/asdine/storm/v3 v3.2.1
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/mt1976/frantic-core v1.2.66
+	github.com/mt1976/frantic-core v1.2.67
 )
 
 require (

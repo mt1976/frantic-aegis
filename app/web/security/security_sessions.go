@@ -79,7 +79,7 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 
 	logHandler.SecurityLogger.Printf("[%v] GetSessionContext: Session=[%v]", strings.ToUpper(domain), sessionID)
 
-	sessionToken, err := sessionStore.GetBy(sessionStore.FIELD_SessionID, sessionID)
+	userSessionTokenRecord, err := sessionStore.GetBy(sessionStore.FIELD_SessionID, sessionID)
 	if err != nil {
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("Session Not Found")
@@ -87,9 +87,9 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 		return ctx
 	}
 
-	logHandler.SecurityLogger.Printf("[%v] GetSessionContext: UserKey=[%v] (%v)", strings.ToUpper(domain), sessionToken.UserKey, sessionToken.UserCode)
+	logHandler.SecurityLogger.Printf("[%v] GetSessionContext: UserKey=[%v] (%v)", strings.ToUpper(domain), userSessionTokenRecord.UserKey, userSessionTokenRecord.UserCode)
 	clock := timing.Start(domain, "userValidator", "")
-	UserMessage, err := userValidator(sessionToken.UserKey)
+	UserMessage, err := userValidator(userSessionTokenRecord.UserKey)
 	clock.Stop(1)
 	if err == commonErrors.ErrorUserNotFound {
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
@@ -110,18 +110,19 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 		return ctx
 	}
 
-	ctx = setSessionContextValues(ctx, UserMessage, sessionID, sessionToken)
+	ctx = setSessionContextValues(ctx, UserMessage, sessionID, userSessionTokenRecord)
 
-	if appModeDev {
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, UserMessage.Code)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserKeyKey, UserMessage.Key)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, sessionToken.Expiry)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionTokenKey, sessionToken)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionLocaleKey, UserMessage.Locale)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionThemeKey, UserMessage.Spare1)
-		logHandler.SecurityLogger.Printf("[%v] EstablishSessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionTimezoneKey, UserMessage.Spare2)
-	}
+	//	if appModeDev {
+	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, Current_UserCode(ctx))
+	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserKeyKey, Current_UserKey(ctx))
+	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
+	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, Current_SessionExpiry(ctx))
+	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionLocaleKey, Current_UserLocale(ctx))
+	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionThemeKey, Current_SessionTheme(ctx))
+	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionTimezoneKey, Current_SessionTimezone(ctx))
+	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionTokenKey, userSessionTokenRecord)
+
+	//	}
 
 	return ctx
 }
