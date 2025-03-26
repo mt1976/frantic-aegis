@@ -48,19 +48,21 @@ func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (messageHelpe
 			Violation(w, r, msg.String())
 		}
 
-		// Check this is a valid user
-		//user, err := userStore.GetByUserName(userName)
-		user, err := userNameValidator(userName)
+		// Check this is a valid userMessage
+		//userMessage, err := userStore.GetByUserName(userName)
+		userMessage, err := userNameValidator(userName)
 		if err != nil {
 			logHandler.SecurityLogger.Printf("[%v] User not found - %v", strings.ToUpper(domain), userName)
 			msg, _ := trnsl8.Get("User not found")
 			Violation(w, r, msg.String())
 		}
-
-		logHandler.SecurityLogger.Printf("[%v] User found - %v [%+v]", strings.ToUpper(domain), userName, user)
+		logHandler.InfoLogger.Printf("User: %+v", userMessage)
+		logHandler.InfoLogger.Printf("User Key: %+v", userMessage.Key)
+		logHandler.InfoLogger.Printf("User Code: %+v", userMessage.Code)
+		logHandler.SecurityLogger.Printf("[%v] User found - %v [%+v]", strings.ToUpper(domain), userName, userMessage)
 
 		//err = auth.ValidateUserIDAndPassword(user.ID, password)
-		err = authValidator(user.Key, password)
+		err = authValidator(userMessage.Key, password)
 		if err != nil {
 			logHandler.SecurityLogger.Printf("[%v] Password mismatch - %v", strings.ToUpper(domain), userName)
 			msg, _ := trnsl8.Get("Password mismatch")
@@ -72,7 +74,7 @@ func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (messageHelpe
 		// Check this is a valid password
 		if securityCheckOK {
 			// Delegate request to the given handle
-			si := New(r.Context(), user.Key, userKeyValidator)
+			si := New(r.Context(), userMessage.Key, userKeyValidator)
 			r.Header.Add(SESSION_KEY, si.SessionID)
 
 			newURL, _ := r.URL.Parse("/home")
