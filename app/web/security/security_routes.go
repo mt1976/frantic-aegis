@@ -28,7 +28,7 @@ func AnnounceSecureRoute(route string) string {
 	return AnnounceInsecureRoute(route)
 }
 
-func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (messageHelpers.UserMessage, error), userNameValidator func(string) (messageHelpers.UserMessage, error), authValidator func(string, string) error) httprouter.Handle {
+func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (messageHelpers.UserMessage, error), userNameValidator func(string) (*messageHelpers.UserMessage, error), authValidator func(string, string) error) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 		// r.Header.Del("Authorization")
