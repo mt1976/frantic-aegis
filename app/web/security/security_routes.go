@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/mt1976/frantic-core/contextHandler"
 	"github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/messageHelpers"
 )
@@ -28,7 +29,7 @@ func AnnounceSecureRoute(route string) string {
 	return AnnounceInsecureRoute(route)
 }
 
-func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (messageHelpers.UserMessage, error), userNameValidator func(string) (*messageHelpers.UserMessage, error), authValidator func(string, string) error) httprouter.Handle {
+func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (messageHelpers.UserMessage, error), userNameValidator func(string) (messageHelpers.UserMessage, error), authValidator func(string, string) error) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 		// r.Header.Del("Authorization")
@@ -111,6 +112,7 @@ func Violation(w http.ResponseWriter, r *http.Request, msg string) {
 	logHandler.SecurityLogger.Printf("[%v] Referer : [%v]", strings.ToUpper(domain), r.Referer())
 	logHandler.SecurityLogger.Printf("[%v] Host : [%v]", strings.ToUpper(domain), r.Host)
 	logHandler.SecurityLogger.Printf("[%v] Remote Address : [%v]", strings.ToUpper(domain), r.RemoteAddr)
+	contextHandler.Debug(r.Context(), "Request-Violation")
 	domain = oldTableName
 
 	if msg == "" {
