@@ -9,6 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/mt1976/frantic-aegis/app/dao/sessionStore"
 	"github.com/mt1976/frantic-core/commonErrors"
+	"github.com/mt1976/frantic-core/contextHandler"
 	"github.com/mt1976/frantic-core/logHandler"
 	"github.com/mt1976/frantic-core/messageHelpers"
 	"github.com/mt1976/frantic-core/timing"
@@ -59,7 +60,7 @@ func New(ctx context.Context, userKey string, userIDValidator func(string) (mess
 	return &SI
 }
 
-func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Params, userValidator func(string) (messageHelpers.UserMessage, error)) context.Context {
+func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Params, userValidator func(string) (messageHelpers.UserMessage, error)) (context.Context, *http.Request) {
 
 	//ps httprouter.Params
 	sessionID := ps.ByName(cfg.GetSecuritySessionKey_Session())
@@ -71,7 +72,7 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 		logHandler.SecurityLogger.Printf("[%v] Unable to find session id to set context", strings.ToUpper(domain))
 		msg, _ := trnsl8.Get("Session Error")
 		Violation(w, r, msg.String())
-		return r.Context()
+		return r.Context(), r
 	}
 
 	ctx := r.Context()
@@ -84,7 +85,7 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("Session Not Found")
 		Violation(w, r, msg.String())
-		return ctx
+		return r.Context(), r
 	}
 
 	logHandler.SecurityLogger.Printf("[%v] GetSessionContext: UserKey=[%v] (%v)", strings.ToUpper(domain), userSessionTokenRecord.UserKey, userSessionTokenRecord.UserCode)
@@ -95,36 +96,29 @@ func GetSessionContext(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("User Not Found")
 		Violation(w, r, msg.String())
-		return ctx
+		return r.Context(), r
 	}
 	if err == commonErrors.ErrorUserNotActive {
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("User Not Active")
 		Violation(w, r, msg.String())
-		return ctx
+		return r.Context(), r
 	}
 	if err != nil {
 		logHandler.ErrorLogger.Printf("Error=[%v]", err.Error())
 		msg, _ := trnsl8.Get("User Invalid")
 		Violation(w, r, msg.String())
-		return ctx
+		return r.Context(), r
 	}
 
 	ctx = setSessionContextValues(ctx, UserMessage, sessionID, userSessionTokenRecord)
 
 	//	if appModeDev {
-	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserCodeKey, Current_UserCode(ctx))
-	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionUserKeyKey, Current_UserKey(ctx))
-	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionKey, sessionID)
-	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionExpiryKey, Current_SessionExpiry(ctx))
-	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionLocaleKey, Current_UserLocale(ctx))
-	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionThemeKey, Current_SessionTheme(ctx))
-	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%v]", strings.ToUpper(domain), sessionTimezoneKey, Current_SessionTimezone(ctx))
-	logHandler.SecurityLogger.Printf("[%v] SessionContext: [%v]=[%+v]", strings.ToUpper(domain), sessionTokenKey, userSessionTokenRecord)
+	contextHandler.Debug(ctx, "Request-Session-OK")
 
 	//	}
 
-	return ctx
+	return ctx, r.WithContext(ctx)
 }
 
 func ExtractSessionTokenFromReferer(r *http.Request) string {
