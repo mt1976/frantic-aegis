@@ -57,6 +57,8 @@ func EntryPoint(h httprouter.Handle, userKeyValidator func(string) (messageHelpe
 			Violation(w, r, msg.String())
 		}
 
+		logHandler.SecurityLogger.Printf("[%v] User found - %v [%+v]", strings.ToUpper(domain), userName, user)
+
 		//err = auth.ValidateUserIDAndPassword(user.ID, password)
 		err = authValidator(user.Key, password)
 		if err != nil {
