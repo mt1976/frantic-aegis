@@ -24,7 +24,8 @@ type Session_Store struct {
 	Locale      string                     // locale
 	Theme       string                     // theme
 	Timezone    string                     // timezone
-	UserMessage messageHelpers.UserMessage `csv:"-"` // user message
+	Role        string                     `storm:"index"` // role
+	UserMessage messageHelpers.UserMessage `csv:"-"`       // user message
 }
 
 // Define the field set as names
@@ -41,6 +42,7 @@ var (
 	FIELD_Theme       = "Theme"
 	FIELD_Timezone    = "Timezone"
 	FIELD_UserMessage = "UserMessage"
+	FIELD_Role        = "Role"
 )
 
 var domain = "Session"

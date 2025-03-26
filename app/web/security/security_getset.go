@@ -21,6 +21,10 @@ func Current_UserLocale(ctx context.Context) string {
 	return contextHandler.GetSession_Locale(ctx)
 }
 
+func Current_UserRole(ctx context.Context) string {
+	return contextHandler.GetSession_UserRole(ctx)
+}
+
 func Current_SessionID(ctx context.Context) string {
 	return contextHandler.GetSession_ID(ctx)
 }
@@ -69,5 +73,14 @@ func setSessionContextValues(ctx context.Context, user messageHelpers.UserMessag
 			ctx = contextHandler.SetSession_Timezone(ctx, cfg.GetApplication_Timezone())
 		}
 	}
+
+	ctx = contextHandler.SetSession_UserRole(ctx, session.Role)
+	if session.Timezone == "" {
+		ctx = contextHandler.SetSession_UserRole(ctx, user.Role)
+		if user.Role == "" {
+			ctx = contextHandler.SetSession_Timezone(ctx, "default")
+		}
+	}
+
 	return ctx
 }
